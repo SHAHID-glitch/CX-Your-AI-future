@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CopilotX - Your AI Future</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232ea043'/><g transform='translate(25,35)'><circle cx='12.5' cy='15' r='12' fill='none' stroke='white' stroke-width='4' transform='rotate(45 12.5 15)'/><circle cx='37.5' cy='15' r='12' fill='none' stroke='white' stroke-width='4' transform='rotate(-45 37.5 15)'/><rect x='22' y='12' width='6' height='6' fill='white' transform='rotate(45 25 15)'/></g></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body class="dark-theme">
+    <!-- Voice Listening Modal -->
+    <div class="voice-modal" id="voiceModal">
+        <div class="voice-modal-content">
+            <div class="voice-listening-text">I'm listening</div>
+            <div class="voice-controls">
+                <button class="voice-control-btn" onclick="closeVoiceModal()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="voice-control-btn voice-mic-btn" onclick="toggleVoiceRecording()" title="Recording">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="voice-control-btn" onclick="openVoiceSettings()" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal-overlay" id="settingsModal">
+        <div class="settings-modal">
+            <div class="settings-modal-header">
+                <h2><i class="fas fa-gear"></i> Settings</h2>
+                <button class="settings-modal-close" onclick="closeSettingsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="settings-modal-body">
+                <!-- Appearance Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-palette"></i>
+                        Appearance
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Theme</div>
+                            <div class="settings-item-description">Choose your preferred theme</div>
+                        </div>
+                        <select class="settings-select" id="themeSelect" onchange="changeThemeFromSettings(this.value)">
+                            <option value="dark-theme">Dark</option>
+                            <option value="light-theme">Light</option>
+                            <option value="curious-theme">Curious</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Font Size</div>
+                            <div class="settings-item-description">Adjust text size</div>
+                        </div>
+                        <select class="settings-select" id="fontSizeSelect" onchange="changeFontSize(this.value)">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Voice Settings Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-microphone"></i>
+                        Voice Settings
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Voice Selection</div>
+                            <div class="settings-item-description">Choose your preferred AI voice</div>
+                        </div>
+                        <select class="settings-select" id="voiceSelect" onchange="changeVoice(this.value)">
+                            <option value="sol">Sol</option>
+                            <option value="juniper" selected>Juniper</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Voice Speed</div>
+                            <div class="settings-item-description">Adjust speech rate</div>
+                        </div>
+                        <select class="settings-select" id="voiceSpeedSelect" onchange="changeVoiceSpeed(this.value)">
+                            <option value="slow">Slow</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="fast">Fast</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Enable Voice Output</div>
+                            <div class="settings-item-description">Speak responses aloud</div>
+                        </div>
+                        <div class="settings-toggle active" id="voiceOutputToggle" onclick="toggleSetting('voiceOutput', this)"></div>
+                    </div>
+                </div>
+
+                <!-- Chat Preferences Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-comment-dots"></i>
+                        Chat Preferences
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Default Response Style</div>
+                            <div class="settings-item-description">Set your preferred response length</div>
+                        </div>
+                        <select class="settings-select" id="responseStyleSelect" onchange="changeDefaultResponseStyle(this.value)">
+                            <option value="concise">Concise</option>
+                            <option value="balanced" selected>Balanced</option>
+                            <option value="detailed">Detailed</option>
+                            <option value="creative">Creative</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Auto-scroll to Latest Message</div>
+                            <div class="settings-item-description">Automatically scroll to new messages</div>
+                        </div>
+                        <div class="settings-toggle active" id="autoScrollToggle" onclick="toggleSetting('autoScroll', this)"></div>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Show Timestamps</div>
+                            <div class="settings-item-description">Display message timestamps</div>
+                        </div>
+                        <div class="settings-toggle" id="timestampsToggle" onclick="toggleSetting('timestamps', this)"></div>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Enable Sound Effects</div>
+                            <div class="settings-item-description">Play sounds for messages</div>
+                        </div>
+                        <div class="settings-toggle" id="soundToggle" onclick="toggleSetting('sound', this)"></div>
+                    </div>
+                </div>
+
+                <!-- Privacy & Data Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-shield-halved"></i>
+                        Privacy & Data
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Save Conversation History</div>
+                            <div class="settings-item-description">Store conversations locally</div>
+                        </div>
+                        <div class="settings-toggle active" id="saveHistoryToggle" onclick="toggleSetting('saveHistory', this)"></div>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Analytics & Improvements</div>
+                            <div class="settings-item-description">Help improve Copilot with usage data</div>
+                        </div>
+                        <div class="settings-toggle active" id="analyticsToggle" onclick="toggleSetting('analytics', this)"></div>
+                    </div>
+                </div>
+
+                <!-- Account Section -->
+                <div class="settings-section" id="accountSection" style="display: none;">
+                    <div class="settings-section-title">
+                        <i class="fas fa-user-circle"></i>
+                        Account Management
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Display Name</div>
+                            <div class="settings-item-description" id="userDisplayNameSetting">Not signed in</div>
+                        </div>
+                        <button class="settings-btn" onclick="openEditProfileModal()">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Username</div>
+                            <div class="settings-item-description" id="userUsername">Not signed in</div>
+                        </div>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Email Address</div>
+                            <div class="settings-item-description" id="userEmail">Not signed in</div>
+                        </div>
+                    </div>
+
+                    <div class="settings-divider"></div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Change Password</div>
+                            <div class="settings-item-description">Update your account password</div>
+                        </div>
+                        <button class="settings-btn" onclick="openChangePasswordModal()">
+                            <i class="fas fa-key"></i> Change
+                        </button>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Profile Picture</div>
+                            <div class="settings-item-description">Update your profile avatar</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="settings-btn" onclick="changeProfilePicture()">
+                                <i class="fas fa-camera"></i> Upload
+                            </button>
+                            <button class="settings-btn" style="background: var(--bg-tertiary); color: var(--text-primary);" onclick="removeProfilePicture()">
+                                <i class="fas fa-times"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-divider"></div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Account Status</div>
+                            <div class="settings-item-description" id="accountStatus">
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-check-circle"></i> Active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Member Since</div>
+                            <div class="settings-item-description" id="memberSince">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="settings-divider"></div>
+
+                    <div class="settings-item settings-danger-zone">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label" style="color: var(--danger);">
+                                <i class="fas fa-exclamation-triangle"></i> Delete Account
+                            </div>
+                            <div class="settings-item-description">Permanently delete your account and all data</div>
+                        </div>
+                        <button class="settings-btn settings-btn-danger" onclick="deleteAccountConfirm()">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Advanced Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-sliders"></i>
+                        Advanced
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Keyboard Shortcuts</div>
+                            <div class="settings-item-description">Enable keyboard shortcuts</div>
+                        </div>
+                        <div class="settings-toggle active" id="keyboardShortcutsToggle" onclick="toggleSetting('keyboardShortcuts', this)"></div>
+                    </div>
+
+                    <div class="settings-item">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Developer Mode</div>
+                            <div class="settings-item-description">Show debug information</div>
+                        </div>
+                        <div class="settings-toggle" id="devModeToggle" onclick="toggleSetting('devMode', this)"></div>
+                    </div>
+
+                    <div class="settings-item" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                        <div class="settings-item-info">
+                            <div class="settings-item-label">Data Management</div>
+                            <div class="settings-item-description">Clear local data and cache</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="settings-button secondary" onclick="clearCache()">Clear Cache</button>
+                            <button class="settings-button danger" onclick="deleteAllConversations()">Delete All Chats</button>
+                            <button class="settings-button danger" onclick="clearAllData()">Clear All Data</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-footer">
+                <button class="settings-button secondary" onclick="resetSettings()">Reset to Default</button>
+                <button class="settings-button" onclick="saveSettings()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="settings-modal-overlay" id="editProfileModal">
+        <div class="settings-modal" style="max-width: 500px;">
+            <div class="settings-modal-header">
+                <h2><i class="fas fa-user-edit"></i> Edit profile</h2>
+                <button class="settings-modal-close" onclick="closeEditProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="settings-modal-body">
+                <!-- Profile Avatar Section -->
+                <div style="display: flex; justify-content: center; margin-bottom: 24px;">
+                    <div style="position: relative;">
+                        <div id="editProfileAvatar" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 48px; border: 4px solid var(--border-color);">
+                            SM
+                        </div>
+                        <button style="position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--primary); border: 2px solid var(--surface); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onclick="changeProfilePicture()" title="Change profile picture">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Form -->
+                <div class="settings-section">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" for="editDisplayName">Display name</label>
+                        <input 
+                            type="text" 
+                            id="editDisplayName" 
+                            class="form-input" 
+                            placeholder="Enter your display name"
+                            value="Shahid Malik"
+                            style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 14px; box-sizing: border-box;"
+                        >
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" for="editUsername">Username</label>
+                        <input 
+                            type="text" 
+                            id="editUsername" 
+                            class="form-input" 
+                            placeholder="Enter your username"
+                            value="shahid_malik_2005"
+                            style="width: 100%; padding: 12px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 14px; box-sizing: border-box;"
+                        >
+                    </div>
+
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">
+                       Made with ❤️ Created By Shahid Malik .
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-footer">
+                <button class="settings-button secondary" onclick="closeEditProfileModal()">Cancel</button>
+                <button class="settings-button" onclick="saveProfile()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Podcast Generation Modal -->
+    <div class="video-modal-overlay" id="podcastModal">
+        <div class="video-modal">
+            <div class="video-modal-header">
+                <h2 style="margin: 0; color: var(--text-primary);"><i class="fas fa-podcast"></i> Create Podcast</h2>
+                <button class="video-modal-close" onclick="closePodcastModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="video-modal-body">
+                <div class="video-form">
+                    <div class="form-group">
+                        <label class="form-label" for="podcastTitle">Podcast Title</label>
+                        <input 
+                            id="podcastTitle" 
+                            class="form-input" 
+                            placeholder="My Amazing Podcast Episode"
+                            maxlength="100"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="podcastScript">Podcast Script / Content</label>
+                        <textarea 
+                            id="podcastScript" 
+                            class="form-input video-textarea" 
+                            placeholder="Enter your podcast script here or describe what you want the AI to talk about...\n\nExample: 'Discuss the future of artificial intelligence and its impact on society'"
+                            rows="8"
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="podcastCharCount">0</span> / 5000 characters
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="podcastVoice">Voice Model</label>
+                        <select class="form-input" id="podcastVoice">
+                            <option value="default" selected>Ava (Natural Female)</option>
+                            <option value="male">Guy (Natural Male)</option>
+                            <option value="female">Jenny (Friendly Female)</option>
+                            <option value="friendly">Aria (Conversational)</option>
+                        </select>
+                        <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">🎙️ Powered by Microsoft Edge TTS - FREE & No API Key!</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="podcastUseAI" checked /> 
+                            Generate script with AI (if empty or incomplete)
+                        </label>
+                    </div>
+                        </label>
+                    </div>
+
+                    <div class="video-preview" id="podcastPreview" style="display: none;">
+                        <div style="background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                            <h4 style="margin: 0 0 12px 0; color: var(--text-primary);"><i class="fas fa-headphones"></i> Your Podcast</h4>
+                            <audio id="generatedPodcast" controls style="width: 100%; border-radius: 8px;"></audio>
+                        </div>
+                        <div class="video-actions" style="margin-top: 12px; display: flex; gap: 8px;">
+                            <button class="settings-button" onclick="downloadPodcast()">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="settings-button secondary" onclick="sharePodcast()">
+                                <i class="fas fa-share"></i> Share
+                            </button>
+                            <button class="settings-button secondary" onclick="createNewPodcast()">
+                                <i class="fas fa-plus"></i> Create New
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="video-generating" id="podcastGenerating" style="display: none;">
+                        <div class="generating-spinner"></div>
+                        <p id="podcastGeneratingText">Generating your podcast...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-footer">
+                <button class="settings-button secondary" onclick="closePodcastModal()">Cancel</button>
+                <button class="settings-button" onclick="generatePodcast()" id="generatePodcastBtn">
+                    <i class="fas fa-microphone"></i> Generate Podcast
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Generation Modal -->
+    <div class="video-modal-overlay" id="videoModal">
+        <div class="video-modal">
+            <div class="video-modal-header">
+                <h2 style="margin: 0; color: var(--text-primary);"><i class="fas fa-film"></i> Generate Video</h2>
+                <button class="video-modal-close" onclick="closeVideoModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="video-modal-body">
+                <div class="video-form">
+                    <div class="form-group">
+                        <label class="form-label" for="videoPrompt">Describe your video</label>
+                        <textarea 
+                            id="videoPrompt" 
+                            class="form-input video-textarea" 
+                            placeholder="Example: A golden sunset over mountains reflecting in a calm lake..."
+                            rows="4"
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="videoCharCount">0</span> / 500 characters
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="videoDuration">Video Duration</label>
+                        <select class="form-input" id="videoDuration">
+                            <option value="short">Short (5-10 seconds)</option>
+                            <option value="medium" selected>Medium (10-30 seconds)</option>
+                            <option value="long">Long (30+ seconds)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="videoStyle">Art Style</label>
+                        <select class="form-input" id="videoStyle">
+                            <option value="realistic" selected>Realistic</option>
+                            <option value="cinematic">Cinematic</option>
+                            <option value="animated">Animated</option>
+                            <option value="stylized">Stylized</option>
+                            <option value="3d">3D Render</option>
+                        </select>
+                    </div>
+
+                    <div class="video-preview" id="videoPreview" style="display: none;">
+                        <video id="generatedVideo" controls style="width: 100%; border-radius: 8px; max-height: 300px;"></video>
+                        <div class="video-actions" style="margin-top: 12px; display: flex; gap: 8px;">
+                            <button class="settings-button" onclick="downloadVideo()">Download</button>
+                            <button class="settings-button secondary" onclick="shareVideo()">Share</button>
+                        </div>
+                    </div>
+
+                    <div class="video-loading" id="videoLoading" style="display: none; text-align: center; padding: 20px;">
+                        <div class="loading-spinner"></div>
+                        <p style="color: var(--text-secondary); margin-top: 12px;">Generating your video...</p>
+                        <p style="color: var(--text-tertiary); font-size: 12px; margin-top: 8px;">This may take 20-40 seconds</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="video-modal-footer">
+                <button class="settings-button secondary" onclick="closeVideoModal()">Cancel</button>
+                <button class="settings-button" onclick="generateVideo()" id="generateVideoBtn">
+                    <i class="fas fa-spark"></i> Generate Video
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="logo-container">
+            <div class="logo-base">
+                <div class="infinity">
+                    <div class="connector"></div>
+                </div>
+                <div class="spark"></div>
+                <div class="spark"></div>
+                <div class="spark"></div>
+                <div class="spark"></div>
+            </div>
+        </div>
+        <div class="loading-title">CopilotX</div>
+        <div class="loading-subtitle">Welcome to the Future of AI</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        // Fallback: Hide loading screen after 2 seconds no matter what
+        setTimeout(function() {
+            var loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.visibility = 'hidden';
+            }
+        }, 2000);
+    </script>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal-overlay" id="authModal">
+        <div class="auth-modal">
+            <div class="auth-modal-header">
+                <h2 style="margin: 0; color: var(--text-primary);">Welcome to Copilot</h2>
+                <button class="auth-modal-close" onclick="closeAuthModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="auth-modal-body">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+                    <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+                </div>
+
+                <!-- Sign In Form -->
+                <form class="auth-form active" id="signinForm" onsubmit="handleSignIn(event)">
+                    <div class="auth-error" id="signinError"></div>
+                    <div class="auth-success" id="signinSuccess"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="signinEmail">Email</label>
+                        <input 
+                            type="email" 
+                            id="signinEmail" 
+                            class="form-input" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="signinPassword">Password</label>
+                        <div class="password-toggle">
+                            <input 
+                                type="password" 
+                                id="signinPassword" 
+                                class="form-input" 
+                                placeholder="Enter your password"
+                                required
+                            >
+                            <button type="button" class="password-toggle-btn" onclick="togglePassword('signinPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn" id="signinBtn">
+                        Sign In
+                    </button>
+
+                    <div class="form-footer">
+                        <a class="form-link" href="/forgot-password.html" target="_blank">Forgot password?</a>
+                    </div>
+
+                    <div class="auth-divider">or continue with</div>
+
+                    <div class="social-auth-btns">
+                        <button type="button" class="social-auth-btn" onclick="socialAuth('github')">
+                            <i class="fab fa-github"></i>
+                            Continue with GitHub
+                        </button>
+                        <button type="button" class="social-auth-btn" onclick="socialAuth('google')">
+                            <i class="fab fa-google"></i>
+                            Continue with Google
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form class="auth-form" id="signupForm" onsubmit="handleSignUp(event)">
+                    <div class="auth-error" id="signupError"></div>
+                    <div class="auth-success" id="signupSuccess"></div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="signupUsername">Username</label>
+                        <input 
+                            type="text" 
+                            id="signupUsername" 
+                            class="form-input" 
+                            placeholder="Choose a username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signupEmail">Email</label>
+                        <input 
+                            type="email" 
+                            id="signupEmail" 
+                            class="form-input" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="signupPassword">Password</label>
+                        <div class="password-toggle">
+                            <input 
+                                type="password" 
+                                id="signupPassword" 
+                                class="form-input" 
+                                placeholder="Create a password (min 6 characters)"
+                                required
+                                minlength="6"
+                            >
+                            <button type="button" class="password-toggle-btn" onclick="togglePassword('signupPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn" id="signupBtn">
+                        Create Account
+                    </button>
+
+                    <div class="auth-divider">or continue with</div>
+
+                    <div class="social-auth-btns">
+                        <button type="button" class="social-auth-btn" onclick="socialAuth('github')">
+                            <i class="fab fa-github"></i>
+                            Continue with GitHub
+                        </button>
+                        <button type="button" class="social-auth-btn" onclick="socialAuth('google')">
+                            <i class="fab fa-google"></i>
+                            Continue with Google
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout-wrapper">
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-nav">
+                <button class="nav-item" onclick="toggleSidebar()" title="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
+                    <span>Menu</span>
+                </button>
+                <button class="nav-item" onclick="newChat()" title="New chat">
+                    <i class="fas fa-pen-to-square"></i>
+                    <span>New chat</span>
+                    <span class="keyboard-shortcut">Ctrl+Shift+O</span>
+                </button>
+                <div class="nav-item active" onclick="navigateTo('discover')" title="Discover"> 
+                    <i class="fas fa-compass"></i>
+                    <span>Discover</span>
+                </div>
+                <!-- <div class="nav-item" onclick="navigateTo('imagine')"title="Imagine">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>Imagine</span> -->
+                    <!-- <span class="badge">New</span> -->
+                <!-- </div> -->
+                <div class="nav-item" onclick="navigateTo('library')"title="Library">
+                    <i class="fas fa-book"></i>
+                    <span>Library</span>
+                </div>
+                <!-- <div class="nav-item" onclick="navigateTo('labs')"title="Labs">
+                    <i class="fas fa-flask"></i>
+                    <span>Labs</span>
+                </div> -->
+            </div>
+
+            <div class="search-container" id="searchContainer">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-magnifying-glass search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search conversations..." oninput="filterConversations()">
+                    <button class="search-close-btn" onclick="closeSearch()" title="Close search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Quick Actions -->
+            <div class="mobile-quick-actions">
+                <button class="quick-action-btn" onclick="selectAction('image')" title="Create Image">
+                    <i class="fas fa-image"></i>
+                    <span>Image</span>
+                </button>
+                <button class="quick-action-btn" onclick="selectAction('writing')" title="Improve Writing">
+                    <i class="fas fa-pen-fancy"></i>
+                    <span>Writing</span>
+                </button>
+                <button class="quick-action-btn" onclick="selectAction('draft')" title="Write Draft">
+                    <i class="fas fa-file-pen"></i>
+                    <span>Draft</span>
+                </button>
+                <button class="quick-action-btn" onclick="selectAction('logo')" title="Design Logo">
+                    <i class="fas fa-palette"></i>
+                    <span>Design</span>
+                </button>
+                <button class="quick-action-btn" onclick="openPodcastModal()" title="Create Podcast">
+                    <i class="fas fa-podcast"></i>
+                    <span>Podcast</span>
+                </button>
+                <button class="quick-action-btn" onclick="openSettingsModal()" title="Settings">
+                    <i class="fas fa-gear"></i>
+                    <span>Settings</span>
+                </button>
+            </div>
+
+            <div class="featured-section">
+                <div class="featured-card">
+                    <div class="featured-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h4>Check out what's new</h4>
+                    <p>New modes, group chats, better memory, and a face to talk to</p>
+                </div>
+            </div>
+
+            <div class="conversations-section">
+                <h3>Conversations</h3>
+                <p class="conversations-note">Sign in to save our conversations.</p>
+                <div id="conversationsList"></div>
+            </div>
+
+            <div class="sidebar-footer">
+                <!-- Account Section (shown when signed in) -->
+                <div class="sidebar-account" id="sidebarAccount" style="display: none;">
+                    <!-- Profile Avatar (Clickable in Expanded State) -->
+                    <div class="footer-profile-section" onclick="handleProfileClick()">
+                        <div class="footer-avatar" id="userAvatar">
+                            SA
+                        </div>
+                    </div>
+
+                    <!-- User Quick Access Button (Primary) -->
+                    <div class="footer-quick-access">
+                        <button class="footer-user-btn" onclick="toggleFooterMenu()">
+                            <div class="footer-btn-avatar" id="userAvatarBtn" onclick="handleAvatarClick(event)">
+                                SA
+                            </div>
+                            <div class="footer-btn-content">
+                                <span id="quickAccessUsername">Shahid_AI</span>
+                            </div>
+                            <i class="fas fa-chevron-down footer-btn-icon"></i>
+                        </button>
+                    </div>
+
+                    <!-- Menu Buttons (Expandable) -->
+                    <div class="footer-menu-buttons" id="footerMenuButtons">
+                        <button class="footer-menu-btn" data-tooltip="Settings" onclick="openSettingsModal()">
+                            <i class="fas fa-gear"></i>
+                            <span>Settings</span>
+                        </button>
+                        <button class="footer-menu-btn footer-signout-btn" data-tooltip="Sign Out" onclick="signOut()">
+                            <i class="fas fa-right-from-bracket"></i>
+                            <span>Sign Out</span>
+                        </button>
+                        <button class="footer-menu-btn" data-tooltip="Edit Profile" onclick="openEditProfileModal()">
+                            <i class="fas fa-user-edit"></i>
+                            <span>Edit Profile</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Hidden info for reference -->
+                    <div style="display: none;">
+                        <div id="sidebarDisplayName">Shahid_AI</div>
+                        <div id="sidebarEmail">shahidmalik.link@gmail.com</div>
+                    </div>
+                </div>
+                
+                <!-- Sign In Button (shown when not signed in) -->
+                <button class="sign-in-btn" id="signInBtn" onclick="showSignIn()" title="Sign in">
+                    <i class="fas fa-user"></i>
+                    <span>Sign in</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <div class="gradient-blob blob-1"></div>
+            <div class="gradient-blob blob-2"></div>
+            <div class="gradient-blob blob-3"></div>
+
+            <!-- Floating Action Button (Mobile) -->
+            <button class="mobile-fab" onclick="newChat()" title="New Chat">
+                <i class="fas fa-pen-to-square"></i>
+            </button>
+
+            <main class="main-content">
+                <header class="header">
+                    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-content">
+                        <h2 id="greeting">Hi there. What should we dive into today?</h2>
+                    </div>
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </header>
+
+                <!-- Carousel -->
+                <div class="carousel-container" id="carouselSection">
+                    <button class="carousel-nav prev" onclick="prevSlide()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    
+                    <div class="carousel-wrapper">
+                        <div class="carousel-slide active">
+                            <div class="slide-card">
+                                <div class="slide-image">
+                                    <i class="fas fa-helmet-safety"></i>
+                                    <div class="image-bg"></div>
+                                </div>
+                                <div class="slide-content">
+                                    <p class="slide-action">Create a logo</p>
+                                    <p class="slide-description">for my fantasy football team featuring an animal wearing a helmet</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-slide">
+                            <div class="slide-card">
+                                <div class="slide-image">
+                                    <i class="fas fa-utensils"></i>
+                                    <div class="image-bg"></div>
+                                </div>
+                                <div class="slide-content">
+                                    <p class="slide-action">Develop a unique menu</p>
+                                    <p class="slide-description">centered around avocados to serve at my watch party</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-slide">
+                            <div class="slide-card">
+                                <div class="slide-image">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <div class="image-bg"></div>
+                                </div>
+                                <div class="slide-content">
+                                    <p class="slide-action">Generate ideas</p>
+                                    <p class="slide-description">for wacky new products that might be popular in 2025</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-slide">
+                            <div class="slide-card">
+                                <div class="slide-image">
+                                    <i class="fas fa-pen-to-square"></i>
+                                    <div class="image-bg"></div>
+                                </div>
+                                <div class="slide-content">
+                                    <p class="slide-action">Write a blog post</p>
+                                    <p class="slide-description">about emerging technologies and their impact on society</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-slide">
+                            <div class="slide-card">
+                                <div class="slide-image">
+                                    <i class="fas fa-chart-line"></i>
+                                    <div class="image-bg"></div>
+                                </div>
+                                <div class="slide-content">
+                                    <p class="slide-action">Analyze data</p>
+                                    <p class="slide-description">and provide insights for business growth strategy</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="carousel-nav next" onclick="nextSlide()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="messages-container" id="messagesContainer"></div>
+
+                <section class="chat-section">
+                    <!-- More Options Menu -->
+                    <div class="more-options-menu" id="moreOptionsMenu">
+                        <button class="more-option-item" onclick="document.getElementById('fileInput').click(); toggleChatMoreOptions();" title="Add PDF or documents for OCR">
+                            <i class="fas fa-file"></i>
+                            <span>Add files</span>
+                        </button>
+                        <button class="more-option-item" onclick="document.getElementById('photoInput').click(); toggleChatMoreOptions();" title="Add photos for OCR">
+                            <i class="fas fa-image"></i>
+                            <span>Add photos</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('createImage')">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <span>Create an image</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('thinking')">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Thinking</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('research')">
+                            <i class="fas fa-search"></i>
+                            <span>Deep research</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('study')">
+                            <i class="fas fa-book"></i>
+                            <span>Study and learn</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('webSearch')">
+                            <i class="fas fa-globe"></i>
+                            <span>Web search</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('canvas')">
+                            <i class="fas fa-pen-nib"></i>
+                            <span>Canvas</span>
+                        </button>
+                        <button class="more-option-item" onclick="createAIPdf(); toggleChatMoreOptions();">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Create AI PDF (default)</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('generatePdf')">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Generate PDF from prompt</span>
+                        </button>
+                        <button class="more-option-item" onclick="createAIDocx(); toggleChatMoreOptions();">
+                            <i class="fas fa-file-word"></i>
+                            <span>Create AI DOCX (default)</span>
+                        </button>
+                        <button class="more-option-item" onclick="selectMoreOption('generateDocx')">
+                            <i class="fas fa-file-word"></i>
+                            <span>Generate DOCX from prompt</span>
+                        </button>
+                        <!-- <button class="more-option-item" onclick="selectMoreOption('video')">
+                            <i class="fas fa-film"></i>
+                            <span>Create a video</span>
+                        </button> -->
+                    </div>
+
+                    <div class="input-wrapper">
+                        <!-- OCR File Inputs -->
+                        <input type="file" id="fileInput" style="display: none;" multiple accept=".pdf,.doc,.docx,.txt,image/*">
+                        <input type="file" id="photoInput" style="display: none;" multiple accept="image/*">
+                        
+                        <div class="input-area">
+                            <button class="input-action more-btn" onclick="toggleChatMoreOptions()" title="More options">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <textarea 
+                                rows="1"
+                                class="chat-input" 
+                                placeholder="Ask anything" 
+                                id="chatInput"
+                                onkeydown="handleKeyPress(event)"
+                                oninput="updateCharCounter()"
+                            ></textarea>
+                            <div class="input-right">
+                                <!-- <button class="input-action attach-btn" onclick="document.getElementById('fileInput').click()" title="Attach files (PDF, DOCX, images)">
+                                    <i class="fas fa-paperclip"></i>
+                                </button> -->
+                                <button class="input-action voice-btn" onclick="toggleVoiceMode()" title="Voice mode - Live transcription">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="input-action transcribe-btn" onclick="transcribeAudioFile()" title="Upload audio to transcribe">
+                                    <i class="fas fa-file-audio"></i>
+                                </button>
+                                <button class="input-action audio-btn voice-assistant-btn" onclick="toggleAudio()" title="AI voice assistant">
+                                    <svg class="voice-bubble-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
+                                        <g class="sound-waves">
+                                            <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            <line x1="10" y1="9" x2="10" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                            <line x1="14" y1="9" x2="14" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                        </g>
+                                    </svg>
+                                    <!-- <span class="voice-assistant-label">AI voice assistant</span> -->
+                                </button>
+                                <button class="input-action send-btn" onclick="sendMessage()" title="Send message">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="quick-response-dropdown" id="quickResponseDropdown">
+                            <button class="quick-btn" onclick="selectQuickResponse('concise')">Concise</button>
+                            <button class="quick-btn" onclick="selectQuickResponse('balanced')">Balanced</button>
+                            <button class="quick-btn" onclick="selectQuickResponse('detailed')">Detailed</button>
+                            <button class="quick-btn" onclick="selectQuickResponse('creative')">Creative</button>
+                        </div>
+                    </div>
+
+                    <div class="action-grid" id="actionGrid">
+                        <button class="action-btn" onclick="selectAction('image')">
+                            <i class="fas fa-image"></i>
+                            <span>Create an image</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('product')">
+                            <i class="fas fa-star"></i>
+                            <span>Recommend a product</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('writing')">
+                            <i class="fas fa-pen-fancy"></i>
+                            <span>Improve writing</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('logo')">
+                            <i class="fas fa-palette"></i>
+                            <span>Design a logo</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('topic')">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Simplify a topic</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('draft')">
+                            <i class="fas fa-file-pen"></i>
+                            <span>Write a first draft</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('advice')">
+                            <i class="fas fa-comments"></i>
+                            <span>Get advice</span>
+                        </button>
+                        <button class="action-btn" onclick="selectAction('email')">
+                            <i class="fas fa-envelope"></i>
+                            <span>Draft an email</span>
+                        </button>
+                        <button class="action-btn" onclick="openPodcastModal()">
+                            <i class="fas fa-podcast"></i>
+                            <span>Create a podcast</span>
+                        </button>
+                        <!-- <button class="action-btn" onclick="selectAction('video')">
+                            <i class="fas fa-film"></i>
+                            <span>Create a video</span>
+                        </button> -->
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="typingIndicator" class="typing-indicator hidden">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- DOCX Preview Modal -->
+    <div id="docxPreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; padding: 20px; box-sizing: border-box;">
+        <div style="position: relative; width: 100%; height: 100%; max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; display: flex; flex-direction: column;">
+            <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: white;">
+                <h3 style="margin: 0; color: #111827; font-size: 18px; font-weight: 600;">📄 Document Preview</h3>
+                <button onclick="closeDocxPreview()" style="background: #f3f4f6; border: none; font-size: 24px; cursor: pointer; color: #374151; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;">
+                    ×
+                </button>
+            </div>
+            <div id="docxPreviewContent" style="flex: 1; overflow: auto; padding: 40px; background: #f9fafb;">
+                <div style="background: white; padding: 40px; max-width: 800px; margin: 0 auto; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 600px; color: #111827; font-size: 16px; line-height: 1.8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="first.js"></script>
+</body>
+</html>

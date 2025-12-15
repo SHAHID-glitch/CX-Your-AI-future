@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick OTP Test</title>
+    <style>
+        body { font-family: Arial; max-width: 500px; margin: 50px auto; padding: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+        button { width: 100%; padding: 12px; font-size: 16px; background: #0084ff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0066cc; }
+        .success { color: green; margin: 10px 0; }
+        .error { color: red; margin: 10px 0; }
+        #otpStep { display: none; }
+    </style>
+</head>
+<body>
+    <h2>Quick OTP Test</h2>
+    
+    <div id="emailStep">
+        <input type="email" id="email" placeholder="Enter your email" value="sahidmalik9368@gmail.com">
+        <button onclick="sendOTP()">Send OTP</button>
+    </div>
+    
+    <div id="otpStep">
+        <p>OTP sent to: <strong id="emailDisplay"></strong></p>
+        <input type="text" id="otp" placeholder="Enter 6-digit OTP" maxlength="6">
+        <button onclick="verifyOTP()">Verify OTP</button>
+        <br><br>
+        <button onclick="backToEmail()">Back</button>
+    </div>
+    
+    <div id="message"></div>
+    
+    <script>
+        const API = 'http://localhost:3000/api';
+        let userEmail = '';
+        
+        async function sendOTP() {
+            const email = document.getElementById('email').value;
+            const msg = document.getElementById('message');
+            
+            console.log('Sending OTP to:', email);
+            msg.innerHTML = '<p>Sending...</p>';
+            
+            try {
+                const response = await fetch(`${API}/auth/login/request-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                if (data.success) {
+                    userEmail = email;
+                    document.getElementById('emailStep').style.display = 'none';
+                    document.getElementById('otpStep').style.display = 'block';
+                    document.getElementById('emailDisplay').textContent = email;
+                    msg.innerHTML = '<p class="success">✅ OTP sent! Check your email.</p>';
+                } else {
+                    msg.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                msg.innerHTML = `<p class="error">❌ Connection failed: ${error.message}</p>`;
+            }
+        }
+        
+        async function verifyOTP() {
+            const otp = document.getElementById('otp').value;
+            const msg = document.getElementById('message');
+            
+            if (!otp || otp.length !== 6) {
+                msg.innerHTML = '<p class="error">Please enter 6-digit OTP</p>';
+                return;
+            }
+            
+            console.log('Verifying OTP:', otp);
+            msg.innerHTML = '<p>Verifying...</p>';
+            
+            try {
+                const response = await fetch(`${API}/auth/login/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: userEmail, otp })
+                });
+                
+                const data = await response.json();
+                console.log('Verify response:', data);
+                
+                if (data.success) {
+                    msg.innerHTML = '<p class="success">✅ Success! Logged in as ' + data.user.username + '</p>';
+                    localStorage.setItem('authToken', data.token);
+                } else {
+                    msg.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                msg.innerHTML = `<p class="error">❌ ${error.message}</p>`;
+            }
+        }
+        
+        function backToEmail() {
+            document.getElementById('emailStep').style.display = 'block';
+            document.getElementById('otpStep').style.display = 'none';
+            document.getElementById('message').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Integration - Image & PDF</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            background: #f8fafc;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #4f46e5;
+            font-size: 1.5rem;
+        }
+
+        .upload-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: #4f46e5;
+            background: #f0f4ff;
+        }
+
+        .upload-zone.dragover {
+            border-color: #4f46e5;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: #4f46e5;
+            margin-bottom: 10px;
+        }
+
+        .upload-zone p {
+            font-size: 1rem;
+            color: #475569;
+            margin: 10px 0;
+        }
+
+        .upload-zone .file-types {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            min-height: 100px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            overflow: auto;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .options-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .options-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .options-group select,
+        .options-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: white;
+        }
+
+        .options-group select:focus,
+        .options-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-info:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .progress-container {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+        }
+
+        .results-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-container.active {
+            display: block;
+        }
+
+        .results-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .results-tab {
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            color: #666;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .results-tab.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .text-output {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4f46e5;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #4f46e5;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            font-size: 0.95rem;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #065f46;
+            border-left-color: #10b981;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #7f1d1d;
+            border-left-color: #ef4444;
+        }
+
+        .alert-info {
+            background: #f0f9ff;
+            color: #0c2d6b;
+            border-left-color: #3b82f6;
+        }
+
+        .copy-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            float: right;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #cbd5e1;
+        }
+
+        .pages-list {
+            background: #f8fafc;
+            border-radius: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .page-item {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .page-item:hover {
+            background: #eef2ff;
+        }
+
+        .page-number {
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .file-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            color: #333;
+            margin-top: 4px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .tab-pane-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .word-item, .line-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .word-confidence, .line-confidence {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .error-details {
+            background: #fef2f2;
+            padding: 12px;
+            border-radius: 6px;
+            color: #7f1d1d;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📷 OCR Integration</h1>
+            <p>Extract text from Images and PDFs with AI-powered OCR</p>
+        </div>
+
+        <div class="main-content">
+            <!-- IMAGE OCR Section -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-image"></i>
+                    Image OCR
+                </div>
+
+                <div class="upload-zone" id="imageUploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p>Drop your image here or click to select</p>
+                    <p class="file-types">Supported: JPG, PNG, GIF, BMP, WebP (Max 10MB)</p>
+                    <input type="file" id="imageInput" accept="image/*">
+                </div>
+
+                <div class="preview-container" id="imagePreview" style="display: none;">
+                    <img id="previewImage" class="preview-image" alt="Preview">
+                </div>
+
+                <div class="options-group">
+                    <label for="imageLanguage">Language:</label>
+                    <select id="imageLanguage">
+                        <option value="eng">English</option>
+                        <option value="spa">Spanish</option>
+                        <option value="fra">French</option>
+                        <option value="deu">German</option>
+                        <option value="ita">Italian</option>
+                        <option value="por">Portuguese</option>
+                        <option value="rus">Russian</option>
+                        <option value="chi_sim">Chinese (Simplified)</option>
+                        <option value="chi_tra">Chinese (Traditional)</option>
+                        <option value="jpn">Japanese</option>
+                        <option value="kor">Korean</option>
+                        <option value="ara">Arabic</option>
+                        <option value="hin">Hindi</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="extractImageBtn">
+                        <i class="fas fa-file-export"></i>
+                        Extract Text
+                    </button>
+                    <button class="btn btn-info" id="detectLangBtn">
+                        <i class="fas fa-language"></i>
+                        Detect Language
+                    </button>
+                </div>
+
+                <div class="progress-container" id="imageProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="imageProgressFill"></div>
+                    </div>
+                    <div class="progress-text" id="imageProgressText">Processing...</div>
+                </div>
+            </div>
+
+            <!-- PDF OCR Section -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-file-pdf"></i>
+                    PDF OCR
+                </div>
+
+                <div class="upload-zone" id="pdfUploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p>Drop your PDF here or click to select</p>
+                    <p class="file-types">Supported: PDF (Max 50MB)</p>
+                    <input type="file" id="pdfInput" accept=".pdf">
+                </div>
+
+                <div class="options-group">
+                    <label for="pdfLanguage">Language:</label>
+                    <select id="pdfLanguage">
+                        <option value="eng">English</option>
+                        <option value="spa">Spanish</option>
+                        <option value="fra">French</option>
+                        <option value="deu">German</option>
+                        <option value="ita">Italian</option>
+                        <option value="por">Portuguese</option>
+                        <option value="rus">Russian</option>
+                        <option value="chi_sim">Chinese (Simplified)</option>
+                        <option value="chi_tra">Chinese (Traditional)</option>
+                        <option value="jpn">Japanese</option>
+                        <option value="kor">Korean</option>
+                        <option value="ara">Arabic</option>
+                        <option value="hin">Hindi</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="extractPdfBtn">
+                        <i class="fas fa-file-export"></i>
+                        Extract with OCR
+                    </button>
+                    <button class="btn btn-secondary" id="extractPdfDirectBtn">
+                        <i class="fas fa-file-import"></i>
+                        Extract Text
+                    </button>
+                </div>
+
+                <div class="progress-container" id="pdfProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="pdfProgressFill"></div>
+                    </div>
+                    <div class="progress-text" id="pdfProgressText">Processing...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div class="results-container" id="resultsContainer">
+            <div id="alerts"></div>
+
+            <div class="results-tabs">
+                <button class="results-tab active" data-tab="extracted-text">
+                    <i class="fas fa-text-height"></i> Extracted Text
+                </button>
+                <button class="results-tab" data-tab="stats">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                </button>
+                <button class="results-tab" data-tab="words" id="wordsTab" style="display: none;">
+                    <i class="fas fa-list"></i> Words
+                </button>
+                <button class="results-tab" data-tab="lines" id="linesTab" style="display: none;">
+                    <i class="fas fa-bars"></i> Lines
+                </button>
+                <button class="results-tab" data-tab="pages" id="pagesTab" style="display: none;">
+                    <i class="fas fa-book"></i> Pages
+                </button>
+            </div>
+
+            <div class="tab-content active" id="extracted-text-tab">
+                <div class="text-output" id="textOutput"></div>
+                <button class="copy-btn" id="copyBtn">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+
+            <div class="tab-content" id="stats-tab">
+                <div class="stats-grid" id="statsGrid"></div>
+                <div class="file-info" id="fileInfo"></div>
+            </div>
+
+            <div class="tab-content" id="words-tab">
+                <div class="tab-pane-content" id="wordsList"></div>
+            </div>
+
+            <div class="tab-content" id="lines-tab">
+                <div class="tab-pane-content" id="linesList"></div>
+            </div>
+
+            <div class="tab-content" id="pages-tab">
+                <div class="pages-list" id="pagesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api/ocr';
+
+        // Image OCR Elements
+        const imageUploadZone = document.getElementById('imageUploadZone');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        const imageLanguage = document.getElementById('imageLanguage');
+        const extractImageBtn = document.getElementById('extractImageBtn');
+        const detectLangBtn = document.getElementById('detectLangBtn');
+        const imageProgress = document.getElementById('imageProgress');
+        const imageProgressFill = document.getElementById('imageProgressFill');
+        const imageProgressText = document.getElementById('imageProgressText');
+
+        // PDF OCR Elements
+        const pdfUploadZone = document.getElementById('pdfUploadZone');
+        const pdfInput = document.getElementById('pdfInput');
+        const pdfLanguage = document.getElementById('pdfLanguage');
+        const extractPdfBtn = document.getElementById('extractPdfBtn');
+        const extractPdfDirectBtn = document.getElementById('extractPdfDirectBtn');
+        const pdfProgress = document.getElementById('pdfProgress');
+        const pdfProgressFill = document.getElementById('pdfProgressFill');
+        const pdfProgressText = document.getElementById('pdfProgressText');
+
+        // Results Elements
+        const resultsContainer = document.getElementById('resultsContainer');
+        const alerts = document.getElementById('alerts');
+        const resultsTabs = document.querySelectorAll('.results-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const textOutput = document.getElementById('textOutput');
+        const statsGrid = document.getElementById('statsGrid');
+        const fileInfo = document.getElementById('fileInfo');
+        const copyBtn = document.getElementById('copyBtn');
+        const wordsList = document.getElementById('wordsList');
+        const linesList = document.getElementById('linesList');
+        const pagesList = document.getElementById('pagesList');
+
+        let currentResult = null;
+        let isImageMode = false;
+
+        // ============ Event Listeners ============
+
+        // Image Upload Zone
+        imageUploadZone.addEventListener('click', () => imageInput.click());
+        imageUploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadZone.classList.add('dragover');
+        });
+        imageUploadZone.addEventListener('dragleave', () => {
+            imageUploadZone.classList.remove('dragover');
+        });
+        imageUploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadZone.classList.remove('dragover');
+            handleImageDrop(e.dataTransfer.files);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            handleImageDrop(e.target.files);
+        });
+
+        // PDF Upload Zone
+        pdfUploadZone.addEventListener('click', () => pdfInput.click());
+        pdfUploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            pdfUploadZone.classList.add('dragover');
+        });
+        pdfUploadZone.addEventListener('dragleave', () => {
+            pdfUploadZone.classList.remove('dragover');
+        });
+        pdfUploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            pdfUploadZone.classList.remove('dragover');
+            handlePdfDrop(e.dataTransfer.files);
+        });
+
+        pdfInput.addEventListener('change', (e) => {
+            handlePdfDrop(e.target.files);
+        });
+
+        // Buttons
+        extractImageBtn.addEventListener('click', () => extractImageOCR());
+        detectLangBtn.addEventListener('click', () => detectImageLanguage());
+        extractPdfBtn.addEventListener('click', () => extractPdfOCR());
+        extractPdfDirectBtn.addEventListener('click', () => extractPdfDirect());
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        // Results Tabs
+        resultsTabs.forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        // ============ Functions ============
+
+        function handleImageDrop(files) {
+            const file = files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showAlert('Please upload an image file', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showAlert('Image must be less than 10MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                imagePreview.style.display = 'block';
+                imageInput.value = '';
+                // Store file for later processing
+                imageInput.files = files;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handlePdfDrop(files) {
+            const file = files[0];
+            if (!file) return;
+
+            if (file.type !== 'application/pdf') {
+                showAlert('Please upload a PDF file', 'error');
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                showAlert('PDF must be less than 50MB', 'error');
+                return;
+            }
+
+            pdfInput.files = files;
+            showAlert(`Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`, 'info');
+        }
+
+        async function extractImageOCR() {
+            if (!imageInput.files.length) {
+                showAlert('Please select an image first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', imageInput.files[0]);
+            formData.append('language', imageLanguage.value);
+
+            await processOCR(formData, `${API_BASE}/extract`, 'image');
+            isImageMode = true;
+        }
+
+        async function detectImageLanguage() {
+            if (!imageInput.files.length) {
+                showAlert('Please select an image first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', imageInput.files[0]);
+
+            try {
+                showProgress(imageProgress, imageProgressText, imageProgressFill);
+                const response = await fetch(`${API_BASE}/detect-language`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                hideProgress(imageProgress);
+
+                if (data.success) {
+                    imageLanguage.value = data.detectedLanguage;
+                    showAlert(`Detected language: ${data.detectedLanguage}`, 'success');
+                } else {
+                    showAlert(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                hideProgress(imageProgress);
+                showAlert(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function extractPdfOCR() {
+            if (!pdfInput.files.length) {
+                showAlert('Please select a PDF first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('pdf', pdfInput.files[0]);
+            formData.append('language', pdfLanguage.value);
+
+            await processOCR(formData, `${API_BASE}/extract-pdf`, 'pdf');
+            isImageMode = false;
+        }
+
+        async function extractPdfDirect() {
+            if (!pdfInput.files.length) {
+                showAlert('Please select a PDF first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('pdf', pdfInput.files[0]);
+
+            await processOCR(formData, `${API_BASE}/extract-pdf-direct`, 'pdf-direct');
+            isImageMode = false;
+        }
+
+        async function processOCR(formData, endpoint, mode) {
+            try {
+                showProgress(mode === 'image' ? imageProgress : pdfProgress, 
+                           mode === 'image' ? imageProgressText : pdfProgressText,
+                           mode === 'image' ? imageProgressFill : pdfProgressFill);
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                hideProgress(mode === 'image' ? imageProgress : pdfProgress);
+
+                if (data.success) {
+                    currentResult = data.data;
+                    displayResults(data.data, mode);
+                    showAlert(`OCR completed successfully!`, 'success');
+                } else {
+                    showAlert(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                hideProgress(mode === 'image' ? imageProgress : pdfProgress);
+                showAlert(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function displayResults(data, mode) {
+            resultsContainer.classList.add('active');
+
+            // Display text
+            textOutput.textContent = data.text.substring(0, 5000) + (data.text.length > 5000 ? '\n...[truncated]' : '');
+
+            // Display stats
+            const stats = [
+                { label: 'Confidence', value: `${data.confidence?.toFixed(2) || 'N/A'}%` },
+                { label: 'Processing Time', value: `${data.processingTime ? (data.processingTime / 1000).toFixed(2) + 's' : 'N/A'}` },
+                { label: 'Language', value: data.language || 'N/A' },
+                { label: 'Text Length', value: `${data.text?.length || 0} chars` }
+            ];
+
+            if (data.totalPages) {
+                stats.push({ label: 'Total Pages', value: data.totalPages });
+                stats.push({ label: 'Processed Pages', value: data.processedPages });
+            }
+
+            statsGrid.innerHTML = stats.map(stat => `
+                <div class="stat-item">
+                    <div class="stat-label">${stat.label}</div>
+                    <div class="stat-value">${stat.value}</div>
+                </div>
+            `).join('');
+
+            // Display file info
+            if (mode.includes('pdf')) {
+                fileInfo.innerHTML = `
+                    <div class="info-item">
+                        <div class="info-label">Total Pages</div>
+                        <div class="info-value">${data.totalPages || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Processed Pages</div>
+                        <div class="info-value">${data.processedPages || 'N/A'}</div>
+                    </div>
+                `;
+            }
+
+            // Show/hide tabs
+            document.getElementById('wordsTab').style.display = data.words ? 'block' : 'none';
+            document.getElementById('linesTab').style.display = data.lines ? 'block' : 'none';
+            document.getElementById('pagesTab').style.display = data.pages ? 'block' : 'none';
+
+            // Display words
+            if (data.words) {
+                wordsList.innerHTML = data.words.map(word => `
+                    <div class="word-item">
+                        ${word.text}
+                        <div class="word-confidence">${word.confidence?.toFixed(1) || 'N/A'}%</div>
+                    </div>
+                `).join('');
+            }
+
+            // Display lines
+            if (data.lines) {
+                linesList.innerHTML = data.lines.map(line => `
+                    <div class="line-item">
+                        ${line.text}
+                        <div class="line-confidence">${line.confidence?.toFixed(1) || 'N/A'}%</div>
+                    </div>
+                `).join('');
+            }
+
+            // Display pages
+            if (data.pages) {
+                pagesList.innerHTML = data.pages.map((page, idx) => `
+                    <div class="page-item" onclick="viewPageDetails(${idx})">
+                        <div class="page-number">Page ${page.pageNumber}</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
+                            ${page.text?.substring(0, 100)}${page.text?.length > 100 ? '...' : ''}
+                        </div>
+                        ${page.confidence ? `<div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">Confidence: ${page.confidence.toFixed(1)}%</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            switchTab('extracted-text');
+        }
+
+        function switchTab(tabName) {
+            resultsTabs.forEach(tab => tab.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function showProgress(progressContainer, progressText, progressFill) {
+            progressContainer.classList.add('active');
+            progressText.textContent = 'Processing... This may take a moment.';
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+            progressContainer.progressInterval = interval;
+        }
+
+        function hideProgress(progressContainer) {
+            clearInterval(progressContainer.progressInterval);
+            progressContainer.classList.remove('active');
+        }
+
+        function showAlert(message, type) {
+            const alertEl = document.createElement('div');
+            alertEl.className = `alert alert-${type}`;
+            alertEl.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            alerts.innerHTML = '';
+            alerts.appendChild(alertEl);
+
+            setTimeout(() => {
+                alertEl.remove();
+            }, 5000);
+        }
+
+        function copyToClipboard() {
+            const text = textOutput.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('Copied to clipboard!', 'success');
+            }).catch(() => {
+                showAlert('Failed to copy', 'error');
+            });
+        }
+
+        function viewPageDetails(index) {
+            if (currentResult?.pages?.[index]) {
+                const page = currentResult.pages[index];
+                textOutput.textContent = page.text || 'No text extracted from this page.';
+                switchTab('extracted-text');
+            }
+        }
+    </script>
+</body>
+</html>

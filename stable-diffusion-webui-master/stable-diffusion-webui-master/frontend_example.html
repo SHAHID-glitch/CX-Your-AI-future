@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stable Diffusion Frontend Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .status.checking { background: #fff3cd; color: #856404; }
+        .status.online { background: #d4edda; color: #155724; }
+        .status.offline { background: #f8d7da; color: #721c24; }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        textarea, input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .result-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .result-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 8px;
+        }
+
+        .examples h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .example-prompts {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .example-prompts button {
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .example-prompts button:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 AI Image Generator</h1>
+        <p class="subtitle">Powered by Stable Diffusion</p>
+
+        <div id="status" class="status checking">⏳ Checking API connection...</div>
+
+        <div class="input-group">
+            <label for="prompt">✍️ Describe your image:</label>
+            <textarea 
+                id="prompt" 
+                placeholder="a beautiful landscape with mountains and sunset, detailed, 4k"
+            >a futuristic cyberpunk city at night, neon lights, detailed, ultra realistic</textarea>
+        </div>
+
+        <div class="input-group">
+            <label for="negative">🚫 What to avoid (optional):</label>
+            <textarea 
+                id="negative" 
+                placeholder="blurry, low quality, distorted"
+            >blurry, low quality, distorted, ugly</textarea>
+        </div>
+
+        <div class="settings-grid">
+            <div class="input-group">
+                <label for="steps">Steps:</label>
+                <input type="number" id="steps" value="20" min="1" max="150">
+            </div>
+            <div class="input-group">
+                <label for="width">Width:</label>
+                <input type="number" id="width" value="512" step="64" min="64" max="2048">
+            </div>
+            <div class="input-group">
+                <label for="height">Height:</label>
+                <input type="number" id="height" value="512" step="64" min="64" max="2048">
+            </div>
+        </div>
+
+        <button id="generateBtn" onclick="generateImage()">🚀 Generate Image</button>
+
+        <div class="examples">
+            <h3>💡 Try these examples:</h3>
+            <div class="example-prompts">
+                <button onclick="useExample('a majestic dragon flying over mountains, fantasy art')">Dragon</button>
+                <button onclick="useExample('a cute robot playing with puppies, cartoon style')">Cute Robot</button>
+                <button onclick="useExample('a serene japanese garden with cherry blossoms')">Garden</button>
+                <button onclick="useExample('a futuristic spacecraft in deep space, stars, nebula')">Spacecraft</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>🎨 Creating your masterpiece...</p>
+            <p style="color: #999; margin-top: 10px;">This may take 2-5 minutes on CPU</p>
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <div id="result" class="result">
+            <img id="resultImage" alt="Generated image">
+            <div class="result-info">
+                <p><strong>Prompt:</strong> <span id="usedPrompt"></span></p>
+                <p><strong>Generation time:</strong> <span id="genTime"></span></p>
+                <p><strong>Seed:</strong> <span id="seed"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const BACKEND_URL = 'http://localhost:3000/api';
+        const SD_API_URL = 'http://127.0.0.1:7860';
+        let startTime;
+
+        // Check API status on load
+        window.addEventListener('DOMContentLoaded', checkAPIStatus);
+
+        async function checkAPIStatus() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                // Try direct connection to SD API
+                const response = await fetch(`${SD_API_URL}/sdapi/v1/sd-models`);
+                
+                if (response.ok) {
+                    statusEl.className = 'status online';
+                    statusEl.textContent = '✅ Stable Diffusion API is online and ready!';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                statusEl.className = 'status offline';
+                statusEl.textContent = '❌ Cannot connect to Stable Diffusion API. Please start webui-user.bat';
+            }
+        }
+
+        async function generateImage() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const negative = document.getElementById('negative').value.trim();
+            const steps = parseInt(document.getElementById('steps').value);
+            const width = parseInt(document.getElementById('width').value);
+            const height = parseInt(document.getElementById('height').value);
+
+            if (!prompt) {
+                showError('Please enter a prompt!');
+                return;
+            }
+
+            // UI updates
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+            
+            startTime = Date.now();
+
+            try {
+                const response = await fetch(`${SD_API_URL}/sdapi/v1/txt2img`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        negative_prompt: negative,
+                        steps: steps,
+                        width: width,
+                        height: height,
+                        cfg_scale: 7,
+                        sampler_name: "Euler a",
+                        seed: -1
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API returned status ${response.status}`);
+                }
+
+                const data = await response.json();
+                const imageBase64 = data.images[0];
+                const info = JSON.parse(data.info || '{}');
+                
+                // Calculate generation time
+                const genTime = ((Date.now() - startTime) / 1000).toFixed(1);
+
+                // Display result
+                document.getElementById('resultImage').src = 'data:image/png;base64,' + imageBase64;
+                document.getElementById('usedPrompt').textContent = prompt;
+                document.getElementById('genTime').textContent = genTime + ' seconds';
+                document.getElementById('seed').textContent = info.seed || 'N/A';
+                
+                document.getElementById('result').classList.add('active');
+                document.getElementById('loading').classList.remove('active');
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                showError('Failed to generate image: ' + error.message + 
+                    '. Make sure Stable Diffusion WebUI is running.');
+                document.getElementById('loading').classList.remove('active');
+            } finally {
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.classList.add('active');
+        }
+
+        function useExample(examplePrompt) {
+            document.getElementById('prompt').value = examplePrompt;
+        }
+
+        // Allow Enter key to generate (with Ctrl/Cmd)
+        document.getElementById('prompt').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                generateImage();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Display Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            padding: 20px;
+            background: #f6f8fa;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .message {
+            margin-bottom: 20px;
+        }
+        .message-bubble {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        button {
+            background: #2ea043;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2c974b;
+        }
+        #output {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🖼️ Image Display Test</h1>
+        <p>Test if images display correctly in the UI</p>
+        
+        <div>
+            <button onclick="testImageSearch()">Test Image Search API</button>
+            <button onclick="testSmartSearch()">Test Smart Search</button>
+            <button onclick="testImageDisplay()">Test Direct Image Display</button>
+        </div>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // Create image results HTML
+        function createImageResultsHTML(imageResults) {
+            if (!imageResults || imageResults.length === 0) return '';
+            
+            let html = '<div class="image-results-container" style="margin-top: 12px; padding: 12px; background: rgba(46, 160, 67, 0.05); border-left: 3px solid #2ea043; border-radius: 6px;">';
+            html += '<div style="font-size: 13px; font-weight: 600; color: #1f2328; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"><i class="fas fa-images" style="color: #2ea043;"></i> Image Results</div>';
+            
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">';
+            
+            imageResults.slice(0, 6).forEach((image) => {
+                const imageUrl = image.thumbnail || image.url;
+                const source = image.source || 'Source';
+                html += `
+                    <div class="image-result-item" style="position: relative; border-radius: 8px; overflow: hidden; cursor: pointer; transition: transform 0.2s; border: 1px solid #e1e4e8;" onclick="window.open('${escapeHtml(image.url)}', '_blank')" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <img src="${escapeHtml(imageUrl)}" 
+                             alt="${escapeHtml(image.title)}" 
+                             style="width: 100%; height: 150px; object-fit: cover; display: block;"
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'padding: 20px; text-align: center; color: #6e7781;\\'>Image unavailable</div>';"
+                        />
+                        <div style="padding: 6px; background: rgba(0, 0, 0, 0.7); color: white; font-size: 11px; position: absolute; bottom: 0; left: 0; right: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${escapeHtml(image.title || source)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        // Test direct image search API
+        async function testImageSearch() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>🔍 Testing image search API...</p>';
+            
+            try {
+                const response = await fetch('/api/search/images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: 'cute cats',
+                        maxResults: 6
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Image search response:', data);
+                
+                if (data.success && data.images && data.images.length > 0) {
+                    output.innerHTML = `
+                        <div class="message">
+                            <div class="message-bubble">
+                                <p><strong>✅ Found ${data.images.length} images!</strong></p>
+                                ${createImageResultsHTML(data.images)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    output.innerHTML = '<p>❌ No images found</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                output.innerHTML = '<p>❌ Error: ' + error.message + '</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        // Test smart search (includes images)
+        async function testSmartSearch() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>🔍 Testing smart search (with images)...</p>';
+            
+            try {
+                const response = await fetch('/api/search/smart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Show me pictures of the Eiffel Tower'
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Smart search response:', data);
+                
+                if (data.success) {
+                    let html = '<div class="message"><div class="message-bubble">';
+                    html += `<p><strong>Search Needed:</strong> ${data.searchNeeded ? '✅ Yes' : '❌ No'}</p>`;
+                    html += `<p><strong>Image Search Needed:</strong> ${data.imageSearchNeeded ? '✅ Yes' : '❌ No'}</p>`;
+                    
+                    if (data.images && data.images.length > 0) {
+                        html += `<p><strong>✅ Found ${data.images.length} images!</strong></p>`;
+                        html += createImageResultsHTML(data.images);
+                    }
+                    
+                    html += '</div></div>';
+                    output.innerHTML = html;
+                } else {
+                    output.innerHTML = '<p>❌ Search failed</p><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                output.innerHTML = '<p>❌ Error: ' + error.message + '</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        // Test direct image display (mock data)
+        function testImageDisplay() {
+            const output = document.getElementById('output');
+            
+            const mockImages = [
+                {
+                    url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba',
+                    thumbnail: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400',
+                    title: 'Cute orange cat',
+                    source: 'Unsplash',
+                    photographer: 'Mikhail Vasilyev'
+                },
+                {
+                    url: 'https://images.unsplash.com/photo-1573865526739-10c1dd4e4d05',
+                    thumbnail: 'https://images.unsplash.com/photo-1573865526739-10c1dd4e4d05?w=400',
+                    title: 'White and gray cat',
+                    source: 'Unsplash',
+                    photographer: 'Paul Hanaoka'
+                },
+                {
+                    url: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce',
+                    thumbnail: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=400',
+                    title: 'Cat lying on ground',
+                    source: 'Unsplash',
+                    photographer: 'Milada Vigerova'
+                }
+            ];
+            
+            output.innerHTML = `
+                <div class="message">
+                    <div class="message-bubble">
+                        <p><strong>Testing Direct Image Display (Mock Data)</strong></p>
+                        ${createImageResultsHTML(mockImages)}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Test on load
+        console.log('Image test page loaded');
+    </script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Generation Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary {
+            background: #6c757d;
+        }
+
+        .secondary:hover {
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .status {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.info {
+            background: #e7f3ff;
+            color: #0066cc;
+            border-left: 4px solid #0066cc;
+        }
+
+        .status.success {
+            background: #e6ffed;
+            color: #00c853;
+            border-left: 4px solid #00c853;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c41c3b;
+            border-left: 4px solid #c41c3b;
+        }
+
+        .status.loading {
+            background: #fff3e0;
+            color: #ff6f00;
+            border-left: 4px solid #ff6f00;
+        }
+
+        .results-section {
+            margin-top: 40px;
+            border-top: 2px solid #e0e0e0;
+            padding-top: 30px;
+        }
+
+        .results-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .video-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .video-item h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .video-item p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .video-item video {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 15px;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .delete-btn:hover {
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .form-section {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Video Generation</h1>
+            <p>Generate videos from text prompts using AI</p>
+        </div>
+
+        <div class="content">
+            <!-- Status Messages -->
+            <div id="status" class="status"></div>
+
+            <!-- Video Generation Form -->
+            <div class="form-section">
+                <h2>Generate Video</h2>
+                <div class="form-group">
+                    <label for="prompt">Describe what you want to see:</label>
+                    <textarea id="prompt" placeholder="E.g., A man riding a bike on a mountain road, cinematic, realistic"></textarea>
+                    <small style="color: #666;">Max 500 characters</small>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="generateVideo()">Generate Video</button>
+                    <button class="secondary" onclick="clearForm()">Clear</button>
+                </div>
+            </div>
+
+            <!-- Batch Generation Form -->
+            <div class="form-section">
+                <h2>Batch Generation</h2>
+                <div class="form-group">
+                    <label for="batchPrompts">Enter prompts (one per line, max 10):</label>
+                    <textarea id="batchPrompts" placeholder="A car driving through a city street&#10;A person running on a beach at sunset&#10;A cat playing with a ball"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="generateBatch()">Generate Batch</button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <h2>Generated Videos</h2>
+                <div id="videosList" style="color: #666; text-align: center; padding: 40px;">
+                    No videos generated yet
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let videos = [];
+
+        // Get auth token from localStorage
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status show ${type}`;
+            if (type === 'success') {
+                setTimeout(() => status.classList.remove('show'), 5000);
+            }
+        }
+
+        async function generateVideo() {
+            const prompt = document.getElementById('prompt').value.trim();
+            
+            if (!prompt) {
+                showStatus('❌ Please enter a prompt', 'error');
+                return;
+            }
+
+            if (prompt.length > 500) {
+                showStatus('❌ Prompt must be 500 characters or less', 'error');
+                return;
+            }
+
+            const token = getAuthToken();
+            if (!token) {
+                showStatus('❌ Please log in first', 'error');
+                return;
+            }
+
+            try {
+                showStatus('🎬 Generating video... This may take a minute or two...', 'loading');
+                
+                const response = await fetch(`${API_BASE}/ai/generate-video`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Generation failed');
+                }
+
+                videos.unshift({
+                    url: data.video.url,
+                    filename: data.video.filename,
+                    prompt: data.video.prompt,
+                    duration: data.video.duration,
+                    size: (data.video.size / 1024 / 1024).toFixed(2)
+                });
+
+                renderVideos();
+                showStatus('✅ Video generated successfully!', 'success');
+                document.getElementById('prompt').value = '';
+
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function generateBatch() {
+            const text = document.getElementById('batchPrompts').value.trim();
+            const prompts = text.split('\n').filter(p => p.trim()).map(p => p.trim());
+
+            if (prompts.length === 0) {
+                showStatus('❌ Please enter at least one prompt', 'error');
+                return;
+            }
+
+            if (prompts.length > 10) {
+                showStatus('❌ Maximum 10 prompts per batch', 'error');
+                return;
+            }
+
+            const token = getAuthToken();
+            if (!token) {
+                showStatus('❌ Please log in first', 'error');
+                return;
+            }
+
+            try {
+                showStatus(`🎬 Generating ${prompts.length} videos... This will take several minutes...`, 'loading');
+                
+                const response = await fetch(`${API_BASE}/ai/generate-videos-batch`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ prompts })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Batch generation failed');
+                }
+
+                data.results.forEach(result => {
+                    if (result.success) {
+                        videos.unshift({
+                            url: result.videoUrl,
+                            filename: result.filename,
+                            prompt: result.prompt,
+                            duration: result.duration,
+                            size: (result.size / 1024 / 1024).toFixed(2)
+                        });
+                    }
+                });
+
+                renderVideos();
+                showStatus(`✅ Batch complete! ${data.results.filter(r => r.success).length}/${prompts.length} videos generated`, 'success');
+                document.getElementById('batchPrompts').value = '';
+
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteVideo(filename) {
+            const token = getAuthToken();
+            if (!token) {
+                showStatus('❌ Please log in first', 'error');
+                return;
+            }
+
+            try {
+                showStatus('🗑️ Deleting video...', 'loading');
+                
+                const response = await fetch(`${API_BASE}/ai/videos/${filename}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Delete failed');
+                }
+
+                videos = videos.filter(v => v.filename !== filename);
+                renderVideos();
+                showStatus('✅ Video deleted', 'success');
+
+            } catch (error) {
+                showStatus(`❌ ${error.message}`, 'error');
+            }
+        }
+
+        function renderVideos() {
+            const list = document.getElementById('videosList');
+            
+            if (videos.length === 0) {
+                list.innerHTML = '<div style="color: #666; text-align: center; padding: 40px;">No videos generated yet</div>';
+                return;
+            }
+
+            list.innerHTML = videos.map((video, i) => `
+                <div class="video-item">
+                    <h3>Video ${i + 1}</h3>
+                    <p><strong>Prompt:</strong> ${escapeHtml(video.prompt)}</p>
+                    <p><strong>Duration:</strong> ${video.duration}s | <strong>Size:</strong> ${video.size}MB</p>
+                    <video controls>
+                        <source src="${video.url}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <button class="delete-btn" onclick="deleteVideo('${video.filename}')">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function clearForm() {
+            document.getElementById('prompt').value = '';
+            document.getElementById('status').classList.remove('show');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Check if user is logged in
+        window.addEventListener('load', () => {
+            const token = getAuthToken();
+            if (!token) {
+                showStatus('💡 Note: You need to be logged in to generate videos', 'info');
+            }
+        });
+    </script>
+</body>
+</html>

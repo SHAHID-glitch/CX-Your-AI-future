@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Generation Fallback Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge.primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .badge.fallback {
+            background: #FF9800;
+            color: white;
+        }
+
+        .badge.info {
+            background: #2196F3;
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-group label {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .option-group input {
+            padding: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .provider-huggingface {
+            background: #FFD700;
+            color: #333;
+        }
+
+        .provider-sd {
+            background: #FF6B6B;
+            color: white;
+        }
+
+        .result-image {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .error {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #ffe6e6;
+            border-left: 4px solid #ff4444;
+            border-radius: 8px;
+            color: #cc0000;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .error-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .advanced-toggle {
+            margin-bottom: 15px;
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .advanced-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .advanced-options {
+            display: none;
+        }
+
+        .advanced-options.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Image Generation Demo</h1>
+        <p class="subtitle">Test Hugging Face API with Stable Diffusion fallback</p>
+
+        <div class="status-badges">
+            <div class="badge primary">
+                <span>🚀</span> Primary: Hugging Face
+            </div>
+            <div class="badge fallback">
+                <span>🔄</span> Fallback: Stable Diffusion
+            </div>
+            <div class="badge info">
+                <span>ℹ️</span> Automatic
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="prompt">Image Prompt</label>
+            <textarea 
+                id="prompt" 
+                placeholder="Describe the image you want to generate... (e.g., 'a futuristic robot in a cyberpunk city')"
+            >a beautiful sunset over mountains, digital art, vibrant colors</textarea>
+        </div>
+
+        <div class="advanced-toggle" onclick="toggleAdvanced()">
+            ⚙️ Advanced Options (for Stable Diffusion)
+        </div>
+
+        <div class="advanced-options" id="advancedOptions">
+            <div class="input-group">
+                <label for="negativePrompt">Negative Prompt</label>
+                <input 
+                    type="text" 
+                    id="negativePrompt" 
+                    placeholder="What to avoid in the image (e.g., 'blurry, low quality')"
+                    value="blurry, low quality, distorted, ugly"
+                >
+            </div>
+
+            <div class="options">
+                <div class="option-group">
+                    <label for="width">Width</label>
+                    <input type="number" id="width" value="512" min="256" max="2048" step="64">
+                </div>
+                <div class="option-group">
+                    <label for="height">Height</label>
+                    <input type="number" id="height" value="512" min="256" max="2048" step="64">
+                </div>
+                <div class="option-group">
+                    <label for="steps">Steps</label>
+                    <input type="number" id="steps" value="20" min="10" max="50">
+                </div>
+            </div>
+        </div>
+
+        <button onclick="generateImage()" id="generateBtn">
+            ✨ Generate Image
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p><strong>Generating your image...</strong></p>
+            <p style="color: #666; font-size: 0.9rem;">This may take 5-15 seconds</p>
+        </div>
+
+        <div class="error" id="error">
+            <div class="error-title">❌ Generation Failed</div>
+            <div id="errorMessage"></div>
+        </div>
+
+        <div class="result" id="result">
+            <div class="result-info">
+                <div class="info-item">
+                    <div class="info-label">Provider</div>
+                    <div class="info-value">
+                        <span id="provider" class="provider-badge"></span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Model</div>
+                    <div class="info-value" id="model">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Processing Time</div>
+                    <div class="info-value" id="time">-</div>
+                </div>
+            </div>
+            <img id="resultImage" class="result-image" alt="Generated Image">
+        </div>
+    </div>
+
+    <script>
+        function toggleAdvanced() {
+            const options = document.getElementById('advancedOptions');
+            options.classList.toggle('active');
+        }
+
+        async function generateImage() {
+            const prompt = document.getElementById('prompt').value.trim();
+            
+            if (!prompt) {
+                alert('Please enter a prompt!');
+                return;
+            }
+
+            // Get UI elements
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+
+            // Reset UI
+            btn.disabled = true;
+            loading.classList.add('active');
+            result.classList.remove('active');
+            error.classList.remove('active');
+
+            // Get advanced options
+            const requestBody = {
+                prompt: prompt
+            };
+
+            // Add advanced options if Stable Diffusion might be used
+            const advancedOptions = document.getElementById('advancedOptions');
+            if (advancedOptions.classList.contains('active')) {
+                requestBody.negativePrompt = document.getElementById('negativePrompt').value;
+                requestBody.width = parseInt(document.getElementById('width').value);
+                requestBody.height = parseInt(document.getElementById('height').value);
+                requestBody.steps = parseInt(document.getElementById('steps').value);
+            }
+
+            try {
+                // NOTE: You need to get auth token from your login system
+                // For testing, you might need to temporarily disable auth on the endpoint
+                const response = await fetch('/api/ai/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'Authorization': 'Bearer YOUR_TOKEN' // Add your auth token here
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Image generation failed');
+                }
+
+                // Display result
+                displayResult(data);
+
+            } catch (err) {
+                // Display error
+                document.getElementById('errorMessage').textContent = err.message;
+                error.classList.add('active');
+                console.error('Error:', err);
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+
+        function displayResult(data) {
+            // Set provider badge
+            const providerEl = document.getElementById('provider');
+            providerEl.textContent = data.provider === 'huggingface' ? 'Hugging Face' : 'Stable Diffusion';
+            providerEl.className = 'provider-badge ' + 
+                (data.provider === 'huggingface' ? 'provider-huggingface' : 'provider-sd');
+
+            // Set model
+            document.getElementById('model').textContent = data.model || 'Unknown';
+
+            // Set processing time
+            const timeMs = data.processingTime || 0;
+            document.getElementById('time').textContent = 
+                timeMs > 1000 ? `${(timeMs / 1000).toFixed(1)}s` : `${timeMs}ms`;
+
+            // Set image
+            document.getElementById('resultImage').src = data.imageUrl;
+
+            // Show result
+            document.getElementById('result').classList.add('active');
+
+            // Log full response for debugging
+            console.log('Generation result:', data);
+        }
+
+        // Test connection on load
+        window.addEventListener('load', () => {
+            console.log('🎨 Image Generation Demo loaded');
+            console.log('📡 Backend should be running on http://localhost:3000');
+            console.log('⚙️  Make sure Stable Diffusion is running with --api flag');
+        });
+    </script>
+</body>
+</html>

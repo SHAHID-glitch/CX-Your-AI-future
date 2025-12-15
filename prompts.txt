@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Example prompts for video generation
+# Usage: node generate-video.js batch prompts.txt
+
+A man riding a bike on a mountain road, cinematic, realistic
+A cat playing with a ball in a sunny garden, close-up, playful
+A person walking through a misty forest with tall trees, morning light
+Cars racing on a track, high speed, cinematic camera angle
+Beach waves crashing on shore at sunset, realistic
+Person running on a beach at sunset, slow motion, emotional
+City skyline at night with lights reflecting in water, urban, dark
+A dog playing fetch in a park, sunny day, slow motion, happy
+Person swimming in a crystal clear pool, underwater shot, peaceful
+Sunset over mountains with clouds, golden hour, scenic
+Birds flying over a lake, nature, serene, morning
+Snow falling in a forest, calm, peaceful, winter
+Person hiking up a mountain, adventure, cinematic
+Forest waterfall with flowing water, nature, tropical
+Desert dunes with wind blowing sand, cinematic, golden light
+Person dancing on a beach, joy, movement, slow motion
+Northern lights dancing in the sky, night, magical, aurora
+Person skateboarding down a street, action, urban, fast
+Flower field blowing in the wind, nature, colorful
+Person doing yoga on a beach at sunrise, peaceful, wellness

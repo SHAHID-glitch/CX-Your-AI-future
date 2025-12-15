@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a82;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>OCR Test Page</h1>
+    
+    <!-- Test 1: Basic OCR Test Endpoint -->
+    <div class="test-section">
+        <h3>Test 1: OCR Service Test Endpoint</h3>
+        <button onclick="testOCREndpoint()">Test OCR Service</button>
+        <div id="test1-result" class="result"></div>
+    </div>
+
+    <!-- Test 2: OCR Languages List -->
+    <div class="test-section">
+        <h3>Test 2: Get OCR Languages</h3>
+        <button onclick="getOCRLanguages()">Get Languages</button>
+        <div id="test2-result" class="result"></div>
+    </div>
+
+    <!-- Test 3: File Upload OCR -->
+    <div class="test-section">
+        <h3>Test 3: Upload Image for OCR</h3>
+        <input type="file" id="imageFile" accept="image/*">
+        <button onclick="uploadAndOCR()">Upload and Extract Text</button>
+        <div id="test3-result" class="result"></div>
+    </div>
+
+    <!-- Test 4: URL-based OCR -->
+    <div class="test-section">
+        <h3>Test 4: OCR from URL</h3>
+        <input type="url" id="imageUrl" placeholder="Enter image URL" style="width: 300px;">
+        <button onclick="ocrFromUrl()">Extract from URL</button>
+        <div id="test4-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+
+        // Test 1: Basic OCR test endpoint
+        async function testOCREndpoint() {
+            const resultDiv = document.getElementById('test1-result');
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/ocr/test`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        // Test 2: Get OCR languages
+        async function getOCRLanguages() {
+            const resultDiv = document.getElementById('test2-result');
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/ocr/languages`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        // Test 3: Upload file for OCR
+        async function uploadAndOCR() {
+            const resultDiv = document.getElementById('test3-result');
+            const fileInput = document.getElementById('imageFile');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Please select an image file first.';
+                return;
+            }
+            
+            resultDiv.textContent = 'Processing image...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                
+                const response = await fetch(`${API_BASE}/ocr/extract`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `Extracted Text:\n${data.text}\n\nConfidence: ${data.confidence}%\nLanguage: ${data.language || 'Not detected'}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        // Test 4: OCR from URL
+        async function ocrFromUrl() {
+            const resultDiv = document.getElementById('test4-result');
+            const urlInput = document.getElementById('imageUrl');
+            
+            if (!urlInput.value) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Please enter an image URL first.';
+                return;
+            }
+            
+            resultDiv.textContent = 'Processing image from URL...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/ocr/extract-url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ imageUrl: urlInput.value })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `Extracted Text:\n${data.text}\n\nConfidence: ${data.confidence}%\nLanguage: ${data.language || 'Not detected'}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        // Add some sample image URLs for testing
+        window.addEventListener('load', function() {
+            document.getElementById('imageUrl').placeholder = 'e.g., https://tesseract.projectnaptha.com/img/eng_bw.png';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - Resource Loading</title>
+</head>
+<body>
+    <h1>Resource Loading Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        // Test loading each resource
+        const resources = [
+            '/style.css',
+            '/first.js',
+            '/api/health',
+            '/api/ocr/languages',
+            'https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'
+        ];
+        
+        async function testResources() {
+            for (const resource of resources) {
+                try {
+                    const response = await fetch(resource, { method: 'HEAD' });
+                    const status = response.status;
+                    const statusText = response.ok ? '✅ OK' : '❌ FAILED';
+                    results.innerHTML += `<p>${statusText} ${resource} - Status: ${status}</p>`;
+                } catch (error) {
+                    results.innerHTML += `<p>❌ ERROR ${resource} - ${error.message}</p>`;
+                }
+            }
+        }
+        
+        testResources();
+        
+        // Also log any console errors
+        window.addEventListener('error', (e) => {
+            results.innerHTML += `<p style="color: red;">🚨 Error: ${e.message} at ${e.filename}:${e.lineno}</p>`;
+        });
+        
+        // Check if the OCR API endpoints exist
+        fetch('/api/ocr/languages')
+            .then(response => {
+                if (response.ok) {
+                    results.innerHTML += '<p>✅ OCR API is working</p>';
+                } else {
+                    results.innerHTML += '<p>❌ OCR API failed with status: ' + response.status + '</p>';
+                }
+            })
+            .catch(error => {
+                results.innerHTML += '<p>❌ OCR API error: ' + error.message + '</p>';
+            });
+    </script>
+</body>
+</html>

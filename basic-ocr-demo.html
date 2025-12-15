@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic OCR - User's Original Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .demo-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #005a82;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            min-height: 40px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        .code-example {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 15px 0;
+        }
+        .original-code {
+            color: #9cdcfe;
+        }
+    </style>
+</head>
+<body>
+    <h1>Basic OCR Implementation</h1>
+    <p>This demonstrates the user's original request:</p>
+    
+    <div class="code-example">
+        <span class="original-code">import Tesseract from 'tesseract.js';<br>
+        Tesseract.recognize('image.jpg', 'eng').then(({data: {text}}) => {<br>
+        &nbsp;&nbsp;console.log(text);<br>
+        });</span>
+    </div>
+
+    <div class="demo-section">
+        <h3>Implementation Demo</h3>
+        <p>Select an image file to extract text using Tesseract.js (exactly as requested):</p>
+        
+        <input type="file" id="imageFile" accept="image/*">
+        <button onclick="processImage()">Extract Text from Image</button>
+        
+        <div id="result" class="result">
+            Select an image and click "Extract Text from Image" to see the OCR results...
+        </div>
+    </div>
+
+    <!-- Load Tesseract.js from CDN -->
+    <script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
+    
+    <script>
+        // Implementation of the user's exact request
+        async function processImage() {
+            const fileInput = document.getElementById('imageFile');
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.textContent = 'Please select an image file first.';
+                return;
+            }
+            
+            resultDiv.textContent = 'Processing image with Tesseract.js...';
+            
+            try {
+                // This is the EXACT code the user requested, adapted for file input
+                const image = fileInput.files[0];
+                
+                // User's original code: Tesseract.recognize('image.jpg', 'eng').then(({data: {text}}) => {console.log(text);});
+                Tesseract.recognize(image, 'eng').then(({data: {text}}) => {
+                    console.log(text); // Original console.log as requested
+                    
+                    // Also display in the UI for better demo
+                    resultDiv.textContent = `Extracted Text:\n${text}`;
+                });
+                
+            } catch (error) {
+                console.error('OCR Error:', error);
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Also demonstrate the promise-based version with better error handling
+        async function processImageWithAsyncAwait() {
+            const fileInput = document.getElementById('imageFile');
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.textContent = 'Please select an image file first.';
+                return;
+            }
+            
+            resultDiv.textContent = 'Processing image with Tesseract.js (async/await version)...';
+            
+            try {
+                const image = fileInput.files[0];
+                
+                // Modern async/await version of the user's code
+                const { data: { text } } = await Tesseract.recognize(image, 'eng');
+                console.log(text);
+                
+                resultDiv.textContent = `Extracted Text:\n${text}`;
+                
+            } catch (error) {
+                console.error('OCR Error:', error);
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Add sample text for testing
+        window.addEventListener('load', function() {
+            console.log('✅ Tesseract.js loaded and ready');
+            console.log('📝 Upload an image to test the exact code you requested:');
+            console.log('   Tesseract.recognize(image, \'eng\').then(({data: {text}}) => {console.log(text);});');
+        });
+    </script>
+</body>
+</html>

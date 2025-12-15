@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Demo - Copilot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height:100px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .test-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output.empty {
+            color: #888;
+            font-style: italic;
+        }
+
+        .chat-demo {
+            margin-top: 20px;
+        }
+
+        .chat-messages {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 18px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.assistant {
+            background: #f1f3f4;
+            color: #333;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Copilot Backend Demo</h1>
+        <p class="subtitle">Testing the backend API integration</p>
+
+        <div id="connectionStatus" class="status info">
+            <span class="spinner"></span>
+            <span>Checking connection...</span>
+        </div>
+
+        <!-- Health Check -->
+        <div class="test-section">
+            <h3>1. Health Check</h3>
+            <button onclick="testHealth()">Check API Health</button>
+            <div id="healthOutput" class="output empty">Click the button to test...</div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="test-section">
+            <h3>2. User Authentication</h3>
+            <button onclick="testRegister()">Register New User</button>
+            <button onclick="testLogin()">Login</button>
+            <div id="authOutput" class="output empty">Click a button to test...</div>
+        </div>
+
+        <!-- Conversations -->
+        <div class="test-section">
+            <h3>3. Conversation Management</h3>
+            <button onclick="testCreateConversation()">Create Conversation</button>
+            <button onclick="testGetConversations()">Get All Conversations</button>
+            <div id="conversationOutput" class="output empty">Click a button to test...</div>
+        </div>
+
+        <!-- Chat Demo -->
+        <div class="test-section">
+            <h3>4. Live Chat Demo</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div style="text-align: center; color: #888;">Start a conversation...</div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="test-section">
+            <h3>5. Analytics</h3>
+            <button onclick="testAnalytics()">Get Analytics</button>
+            <div id="analyticsOutput" class="output empty">Click the button to test...</div>
+        </div>
+    </div>
+
+    <script src="api-client.js"></script>
+    <script>
+        let currentConversationId = null;
+
+        // Check connection on load
+        window.addEventListener('load', async () => {
+            await testHealth(true);
+        });
+
+        async function testHealth(silent = false) {
+            const output = document.getElementById('healthOutput');
+            const status = document.getElementById('connectionStatus');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/health');
+                const data = await response.json();
+                
+                if (!silent) {
+                    output.textContent = JSON.stringify(data, null, 2);
+                    output.classList.remove('empty');
+                }
+
+                status.className = 'status success';
+                status.innerHTML = '<span>✅</span><span>Backend Connected - API is running!</span>';
+            } catch (error) {
+                if (!silent) {
+                    output.textContent = 'Error: ' + error.message;
+                    output.classList.remove('empty');
+                }
+
+                status.className = 'status error';
+                status.innerHTML = '<span>❌</span><span>Backend Not Connected - Please start the server</span>';
+            }
+        }
+
+        async function testRegister() {
+            const output = document.getElementById('authOutput');
+            output.textContent = 'Registering user...';
+            output.classList.remove('empty');
+
+            try {
+                const timestamp = Date.now();
+                const result = await API.Auth.register(
+                    `user_${timestamp}`,
+                    `user_${timestamp}@example.com`,
+                    'password123'
+                );
+                
+                output.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const output = document.getElementById('authOutput');
+            output.textContent = 'Logging in...';
+            output.classList.remove('empty');
+
+            try {
+                // You'll need to use credentials from a registered user
+                const timestamp = Date.now();
+                const result = await API.Auth.register(
+                    `login_${timestamp}`,
+                    `login_${timestamp}@example.com`,
+                    'password123'
+                );
+                
+                output.textContent = 'Registered and logged in!\n\n' + JSON.stringify(result, null, 2);
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testCreateConversation() {
+            const output = document.getElementById('conversationOutput');
+            output.textContent = 'Creating conversation...';
+            output.classList.remove('empty');
+
+            try {
+                const result = await API.Conversations.create('Demo Chat');
+                currentConversationId = result.conversation.id;
+                
+                output.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testGetConversations() {
+            const output = document.getElementById('conversationOutput');
+            output.textContent = 'Getting conversations...';
+            output.classList.remove('empty');
+
+            try {
+                const result = await API.Conversations.getAll();
+                output.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const messagesDiv = document.getElementById('chatMessages');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Clear placeholder
+            if (messagesDiv.children.length === 1 && messagesDiv.children[0].textContent.includes('Start a conversation')) {
+                messagesDiv.innerHTML = '';
+            }
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = message;
+            messagesDiv.appendChild(userMsg);
+
+            input.value = '';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                // Create conversation if needed
+                if (!currentConversationId) {
+                    const conv = await API.Conversations.create('Demo Chat');
+                    currentConversationId = conv.conversation.id;
+                }
+
+                // Send message
+                const result = await API.Messages.send(
+                    currentConversationId,
+                    message,
+                    'balanced'
+                );
+
+                // Add AI response
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'message assistant';
+                aiMsg.textContent = result.aiMessage.content;
+                messagesDiv.appendChild(aiMsg);
+
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } catch (error) {
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message assistant';
+                errorMsg.textContent = 'Error: ' + error.message;
+                errorMsg.style.background = '#ffebee';
+                errorMsg.style.color = '#c62828';
+                messagesDiv.appendChild(errorMsg);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function testAnalytics() {
+            const output = document.getElementById('analyticsOutput');
+            output.textContent = 'Getting analytics...';
+            output.classList.remove('empty');
+
+            try {
+                const result = await API.Analytics.get();
+                output.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
