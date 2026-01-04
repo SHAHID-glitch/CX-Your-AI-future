@@ -311,7 +311,7 @@ console.log('📝 Copilot script starting...');
                         <button onclick="viewLibraryImage(${index})" title="View Full Size">
                             <i class="fas fa-expand"></i>
                         </button>
-                        <button onclick="copyImageUrl('${imageData.url}')" title="Copy URL">
+                        <button onclick="copyImageUrl('${imageData.url}', event)" title="Copy URL">
                             <i class="fas fa-copy"></i>
                         </button>
                         <button onclick="deleteLibraryImage(${index})" title="Delete" class="delete-btn">
@@ -648,8 +648,23 @@ console.log('📝 Copilot script starting...');
                 </button>
             `;
             if (conversationItem) {
-                conversationItem.style.position = 'relative';
-                conversationItem.appendChild(menu);
+                // Append menu to body for fixed positioning (avoids overflow clipping)
+                document.body.appendChild(menu);
+                
+                // Position menu relative to the conversation item
+                const rect = conversationItem.getBoundingClientRect();
+                menu.style.top = `${rect.bottom + 4}px`;
+                menu.style.left = `${rect.right - menu.offsetWidth}px`;
+                
+                // Ensure menu doesn't go off-screen
+                const menuRect = menu.getBoundingClientRect();
+                if (menuRect.bottom > window.innerHeight) {
+                    menu.style.top = `${rect.top - menuRect.height - 4}px`;
+                }
+                if (menuRect.left < 0) {
+                    menu.style.left = `${rect.left}px`;
+                }
+                
                 activeConversationMenu = menu;
 
                 // Close menu when clicking outside
@@ -2718,7 +2733,7 @@ async function sendMessage(userMessage) {
                             <p style="font-size: 0.9em; margin: 8px 0; word-break: break-word;"><strong>Prompt:</strong> ${prompt}</p>
                         </div>
                         <div class="image-actions" style="display: flex; gap: 8px; margin-top: 12px;">
-                            <button onclick="copyImageUrl('${absoluteImageUrl}')" class="message-action-btn" title="Copy URL">
+                            <button onclick="copyImageUrl('${absoluteImageUrl}', event)" class="message-action-btn" title="Copy URL">
                                 <i class="fas fa-copy"></i> Copy URL
                             </button>
                             <button onclick="downloadImage('${absoluteImageUrl}', '${result.filename}')" class="message-action-btn" title="Download">
@@ -2761,17 +2776,20 @@ async function sendMessage(userMessage) {
         }
 
         // Copy image URL to clipboard
-        function copyImageUrl(url) {
+        function copyImageUrl(url, event) {
             navigator.clipboard.writeText(url).then(() => {
-                const btn = event.target.closest('button');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                }, 2000);
+                const btn = event ? event.target.closest('button') : null;
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                }
+                showNotification('URL copied to clipboard!', 'success');
             }).catch(err => {
                 console.error('Failed to copy:', err);
-                alert('Failed to copy URL');
+                showNotification('Failed to copy URL', 'error');
             });
         }
         window.generateImage = generateImage;
