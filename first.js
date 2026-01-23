@@ -6916,7 +6916,8 @@ ${ocr.extractedText.substring(0, 500)}${ocr.extractedText.length > 500 ? '\n...[
                     const errorData = await ttsResponse.json();
                     
                     // If Python environment error, offer browser-based TTS as fallback
-                    if (errorData.error === 'Python environment not found' && 'speechSynthesis' in window) {
+                    const PYTHON_ENV_ERROR = 'Python environment not found';
+                    if (errorData.error === PYTHON_ENV_ERROR && 'speechSynthesis' in window) {
                         console.warn('⚠️ Server TTS not available, using browser speech synthesis as fallback');
                         
                         // Use browser's speech synthesis
@@ -6935,15 +6936,28 @@ ${ocr.extractedText.substring(0, 500)}${ocr.extractedText.length > 500 ? '\n...[
                                 utterance.rate = 0.9;
                                 utterance.pitch = 1.0;
                                 
-                                // Set voice based on selection
+                                // Set voice based on selection with multiple fallback options
                                 const voices = speechSynthesis.getVoices();
                                 if (voices.length > 0) {
-                                    const voiceMap = {
-                                        'male': voices.find(v => v.name.includes('Male') || v.name.includes('David')) || voices[0],
-                                        'female': voices.find(v => v.name.includes('Female') || v.name.includes('Samantha')) || voices[0],
-                                        'default': voices[0]
-                                    };
-                                    utterance.voice = voiceMap[voice] || voices[0];
+                                    let selectedVoice = voices[0]; // Default fallback
+                                    
+                                    if (voice === 'male') {
+                                        selectedVoice = voices.find(v => 
+                                            v.name.toLowerCase().includes('male') || 
+                                            v.name.includes('David') ||
+                                            v.name.includes('Guy') ||
+                                            v.gender === 'male'
+                                        ) || voices[0];
+                                    } else if (voice === 'female') {
+                                        selectedVoice = voices.find(v => 
+                                            v.name.toLowerCase().includes('female') || 
+                                            v.name.includes('Samantha') ||
+                                            v.name.includes('Ava') ||
+                                            v.gender === 'female'
+                                        ) || voices[0];
+                                    }
+                                    
+                                    utterance.voice = selectedVoice;
                                 }
                                 
                                 speechSynthesis.speak(utterance);
@@ -6955,7 +6969,8 @@ ${ocr.extractedText.substring(0, 500)}${ocr.extractedText.length > 500 ? '\n...[
                             }
                         } else {
                             generatingDiv.style.display = 'none';
-                            alert('❌ Podcast generation cancelled.\n\nTo enable full podcast features, please set up the Python environment:\n' + errorData.instructions);
+                            const setupInstructions = errorData.instructions || 'See PODCAST-FEATURE.md for setup instructions';
+                            alert('❌ Podcast generation cancelled.\n\nTo enable full podcast features, please set up the Python environment:\n' + setupInstructions);
                             generateBtn.disabled = false;
                             return;
                         }
