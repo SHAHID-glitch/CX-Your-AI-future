@@ -197,6 +197,92 @@ net start MongoDB
 PORT=3001
 ```
 
+## 🔧 Troubleshooting
+
+### Common Issues and Solutions
+
+#### "openPodcastModal is not defined"
+This error occurs when trying to access the podcast modal. **Solutions:**
+1. Ensure you're accessing the app via `http://localhost:3000/copilot` (not via `file://`)
+2. Check browser console for JavaScript errors
+3. Try hard refresh: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+4. Clear browser cache and reload
+
+#### "Python environment not found" (Podcast TTS Error)
+This error appears when trying to generate podcasts without Python setup. **Solutions:**
+
+**Option 1: Set up Python environment (Recommended for full features)**
+```bash
+# 1. Install Python 3.8 or higher
+python --version
+
+# 2. Create virtual environment
+python -m venv .venv
+
+# 3. Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+# 4. Install edge-tts
+pip install edge-tts
+
+# 5. Restart the server
+npm start
+```
+
+**Option 2: Use Browser TTS (No setup required)**
+- When the error appears, click "Yes" to use browser text-to-speech
+- You can listen to podcasts but cannot download them
+- Works immediately without any setup
+
+See [PODCAST-FEATURE.md](./PODCAST-FEATURE.md) for detailed podcast feature documentation.
+
+#### "Failed to load resource: 401" (Authentication Error)
+This indicates authentication issues. **Solutions:**
+1. Clear browser local storage: `localStorage.clear()` in browser console
+2. Sign out and sign back in
+3. Check if MongoDB is running
+4. Verify `JWT_SECRET` is set in `.env` file
+
+#### MongoDB Connection Errors
+```
+Error: connect ECONNREFUSED 127.0.0.1:27017
+```
+**Solutions:**
+1. **Start MongoDB:**
+   ```bash
+   # Windows:
+   mongod
+   # Linux/Mac:
+   sudo systemctl start mongod
+   ```
+2. **Or use MongoDB Atlas** (cloud database):
+   - Create account at https://www.mongodb.com/cloud/atlas
+   - Create a cluster
+   - Get connection string
+   - Update `MONGODB_URI` in `.env`
+
+#### Port Already in Use
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+**Solutions:**
+1. Kill the process using port 3000:
+   ```bash
+   # Windows:
+   netstat -ano | findstr :3000
+   taskkill /PID <PID> /F
+   
+   # Linux/Mac:
+   lsof -ti:3000 | xargs kill -9
+   ```
+2. Or change the port in `.env`:
+   ```env
+   PORT=3001
+   ```
+
 ## 📚 Project Structure
 
 ```

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Modal Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Podcast Modal Function Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Check if functions are defined</h2>
+        <p>This test verifies that podcast-related functions are exposed on the window object after loading first.js</p>
+        <button onclick="testFunctionsExist()">Run Test</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Test Browser TTS Availability</h2>
+        <p>This test checks if browser speech synthesis is available as a fallback</p>
+        <button onclick="testBrowserTTS()">Run Test</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Console Output Check</h2>
+        <p>Check the browser console for the success message: <code>✅ Copilot script loaded successfully</code></p>
+        <button onclick="window.open('', '_blank').document.write('<pre>' + JSON.stringify(console, null, 2) + '</pre>')">Open Console (if available)</button>
+        <p style="color: #666; font-size: 14px;">Press F12 to open Developer Tools and check the Console tab</p>
+    </div>
+
+    <!-- Load first.js -->
+    <script src="first.js" defer></script>
+
+    <!-- Test functions -->
+    <script>
+        function testFunctionsExist() {
+            const resultDiv = document.getElementById('test1-result');
+            const functionsToTest = [
+                'openPodcastModal',
+                'closePodcastModal',
+                'generatePodcast',
+                'downloadPodcast',
+                'sharePodcast',
+                'createNewPodcast'
+            ];
+
+            let results = [];
+            let allPassed = true;
+
+            functionsToTest.forEach(funcName => {
+                const exists = typeof window[funcName] === 'function';
+                results.push(`<div>${exists ? '✅' : '❌'} <code>window.${funcName}</code> - ${exists ? 'DEFINED' : 'NOT DEFINED'}</div>`);
+                if (!exists) allPassed = false;
+            });
+
+            const summary = allPassed 
+                ? '<strong>✅ All podcast functions are properly defined!</strong>' 
+                : '<strong>❌ Some functions are missing!</strong>';
+
+            resultDiv.className = 'result' + (allPassed ? '' : ' error');
+            resultDiv.innerHTML = summary + '<br><br>' + results.join('');
+        }
+
+        function testBrowserTTS() {
+            const resultDiv = document.getElementById('test2-result');
+            
+            const hasSpeechSynthesis = 'speechSynthesis' in window;
+            const voices = hasSpeechSynthesis ? speechSynthesis.getVoices() : [];
+            
+            let result = '';
+            if (hasSpeechSynthesis) {
+                result = `
+                    <strong>✅ Browser TTS is available!</strong><br><br>
+                    <div>Available voices: ${voices.length > 0 ? voices.length : 'Loading...'}</div>
+                    ${voices.length > 0 ? '<div>First voice: ' + voices[0].name + '</div>' : ''}
+                    <div style="margin-top: 10px; font-size: 14px; color: #666;">
+                        Note: If voices show 0, they may still be loading. Try clicking again in a moment.
+                    </div>
+                `;
+                resultDiv.className = 'result';
+            } else {
+                result = '<strong>❌ Browser TTS is NOT available</strong><br>Your browser does not support Speech Synthesis API';
+                resultDiv.className = 'result error';
+            }
+            
+            resultDiv.innerHTML = result;
+
+            // Try to load voices if not loaded yet
+            if (hasSpeechSynthesis && voices.length === 0) {
+                speechSynthesis.onvoiceschanged = () => {
+                    setTimeout(() => testBrowserTTS(), 100);
+                };
+            }
+        }
+
+        // Auto-run tests after page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🧪 Running automatic tests...');
+                testFunctionsExist();
+                testBrowserTTS();
+            }, 1000); // Wait 1 second for first.js to fully load
+        });
+    </script>
+</body>
+</html>

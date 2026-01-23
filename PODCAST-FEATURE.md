@@ -1,7 +1,50 @@
 # 🎙️ Podcast Creation Feature
 
 ## Overview
-The podcast creation feature allows users to generate AI-powered podcasts with customizable voices and speaking speeds. Users can either write their own script or have AI generate one automatically.
+The podcast creation feature allows users to generate AI-powered podcasts with customizable voices. Users can either write their own script or have AI generate one automatically. The feature uses Microsoft Edge TTS (Text-to-Speech) which is free and requires no API key!
+
+## ⚙️ Setup Requirements
+
+### Option 1: Full Podcast Features (Recommended)
+To enable downloadable podcast generation with Microsoft Edge TTS:
+
+1. **Install Python** (3.8 or higher)
+   ```bash
+   python --version  # Verify Python is installed
+   ```
+
+2. **Create Virtual Environment**
+   ```bash
+   python -m venv .venv
+   ```
+
+3. **Activate Virtual Environment**
+   - Windows:
+     ```bash
+     .venv\Scripts\activate
+     ```
+   - Linux/Mac:
+     ```bash
+     source .venv/bin/activate
+     ```
+
+4. **Install edge-tts**
+   ```bash
+   pip install edge-tts
+   ```
+
+5. **Verify Installation**
+   ```bash
+   edge-tts --help
+   ```
+
+For detailed setup instructions, see [EDGE-TTS-READY.md](./EDGE-TTS-READY.md)
+
+### Option 2: Browser-Based TTS (Fallback)
+If Python environment is not set up, the system will automatically offer to use your browser's built-in text-to-speech:
+- ✅ Works immediately, no setup required
+- ⚠️ Cannot download podcasts as audio files
+- ⚠️ Quality depends on browser and OS
 
 ## Features
 
@@ -17,8 +60,12 @@ The podcast creation feature allows users to generate AI-powered podcasts with c
    - Toggle the "Generate script with AI" checkbox to enable/disable
 
 ### 3. **Voice Options**
-   - **SpeechT5 (Microsoft)**: Natural, high-quality voice powered by Microsoft's SpeechT5 TTS model
-   - Powered by HuggingFace 🤗 - No OpenAI API key required!
+   - **Ava (Natural Female)**: Default voice, clear and professional
+   - **Guy (Natural Male)**: Deep and authoritative
+   - **Jenny (Friendly Female)**: Warm and conversational  
+   - **Aria (Conversational)**: Natural and engaging
+   - Powered by Microsoft Edge TTS - No API key required!
+   - Free and unlimited usage
 
 ### 4. **Podcast Management**
    - Play directly in the browser
@@ -74,28 +121,33 @@ Script: Your review content or AI-generated review
 - Real-time character counter
 - Audio player for playback
 - Download and share functionality
+- Fallback to browser TTS when server TTS unavailable
 
 ### Backend (routes/ai.js)
 - `/api/ai/text-to-speech` endpoint
-- HuggingFace API integration
-- Uses Microsoft's SpeechT5 TTS model
-- Returns audio as FLAC stream
+- Microsoft Edge TTS via Python edge-tts package
+- Returns audio as MP3
+- Graceful error handling when Python environment not found
 
-### API Requirements
-- HuggingFace API key required (`HUGGINGFACE_API_KEY` in `.env`)
-- Uses `microsoft/speecht5_tts` model
-- Maximum text length: 5000 characters
+### Requirements
+- **Python 3.8+** with edge-tts package (for downloadable podcasts)
+- **OR** Modern web browser with Speech Synthesis API (for playback only)
+- No API keys required!
 
 ### Audio Format
-- **Output**: FLAC (audio/flac)
-- **Quality**: High-quality TTS
-- **Model**: Microsoft SpeechT5
+- **Output**: MP3 (audio/mpeg)
+- **Quality**: High-quality natural speech
+- **Engine**: Microsoft Edge TTS
+- **Fallback**: Browser Speech Synthesis API
 
 ## Configuration
 
 ### Environment Variables
+No API keys required! Just set up Python environment:
+
 ```env
-HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+# Optional: Adjust these if needed
+MAX_FILE_SIZE=52428800  # 50MB for audio files
 ```
 
 ### Supported Text Length
@@ -104,16 +156,30 @@ HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 
 ## Troubleshooting
 
-### "HuggingFace API key not configured"
-- Add `HUGGINGFACE_API_KEY` to your `.env` file
-- Get your free key from https://huggingface.co/settings/tokens
-- Restart the server
+### "Python environment not found"
+**Solution 1: Set up Python (Recommended)**
+1. Install Python 3.8 or higher
+2. Create virtual environment: `python -m venv .venv`
+3. Activate: `.venv\Scripts\activate` (Windows) or `source .venv/bin/activate` (Linux/Mac)
+4. Install edge-tts: `pip install edge-tts`
+5. Restart the server
+
+**Solution 2: Use Browser TTS (Immediate)**
+- Click "Yes" when prompted to use browser text-to-speech
+- You can listen to podcasts but cannot download them
+- Works immediately without any setup
 
 ### "Failed to generate podcast audio"
-- Check internet connection
-- Verify HuggingFace API key is valid
-- The model may be loading (first request can take 20-30 seconds)
+- If using server TTS: Check Python environment is set up correctly
+- If using browser TTS: Check browser audio permissions
+- Check internet connection for AI script generation
 - Try again after a few moments
+
+### "openPodcastModal is not defined"  
+- Ensure you're accessing via http://localhost:3000/copilot (not file://)
+- Check browser console for JavaScript errors
+- Try hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
+- Clear browser cache and reload
 
 ### Audio not playing
 - Check browser audio permissions
@@ -135,12 +201,17 @@ HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 - [ ] Podcast episode scheduling
 - [ ] RSS feed generation
 - [ ] Integration with podcast platforms
+- [ ] Cloud storage for podcasts
 
 ## Credits
-- **Text-to-Speech**: HuggingFace API (Microsoft SpeechT5)
-- **AI Script Generation**: GPT-4 / Groq
+- **Text-to-Speech**: Microsoft Edge TTS (Free, No API Key!)
+- **AI Script Generation**: GPT-4 / Groq / OpenAI
 - **UI Framework**: Custom CSS with Font Awesome icons
+- **Fallback TTS**: Browser Speech Synthesis API
 
 ---
 
-**Need Help?** Check the main documentation or contact support.
+**Need Help?** 
+- Check [EDGE-TTS-READY.md](./EDGE-TTS-READY.md) for Python setup
+- See main documentation or contact support
+- Report issues on GitHub
